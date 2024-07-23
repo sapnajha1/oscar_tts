@@ -7,6 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:oscar_stt/app.dart';
 
 import 'package:oscar_stt/main.dart';
 
