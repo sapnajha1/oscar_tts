@@ -29,8 +29,8 @@ class MyApp extends StatelessWidget {
         //   // '/record': (context) => RecordView(),
         //   // '/profile': (context) => ProfileView(),
         // },
-        home: LoginView(),
-
+        home: SplashScreen(),
+// home: LoginView(),
       )
     );
   }
