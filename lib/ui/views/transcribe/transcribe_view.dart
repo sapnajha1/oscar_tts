@@ -1,8 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:oscar_stt/core/constants/app_colors.dart';
 
 class TranscribeResult extends StatelessWidget {
-  const TranscribeResult({super.key});
+  final String transcribedText;
+  final VoidCallback onDelete;
+  const TranscribeResult({super.key, required this. transcribedText, required this.onDelete});
+
+  Future<void> _deleteTranscription(BuildContext context) async {
+
+    Navigator.pop(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Transcription deleted')),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +30,7 @@ class TranscribeResult extends StatelessWidget {
         ),
         title: Center(
           child: Text(
-            'Heading',
+            'Your Transcription',
             style: TextStyle(fontSize: mq.width * 0.05),
           ),
         ),
@@ -32,14 +43,13 @@ class TranscribeResult extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'This is a sample transcription text. You can scroll to see more of the text. '
-                    'This text will be replaced with the actual transcription data. '
-                    'This example shows how to display long text in a scrollable view. '
-                    'Make sure to adjust the font size and styling as needed to fit your design. '
-                    'Continue adding more text here to test scrolling behavior.',
-                style: TextStyle(fontSize: mq.width * 0.045),
-              ),
+              Text( transcribedText,
+                style: GoogleFonts.karla(
+                  fontSize: mq.width * 0.05,
+                  fontWeight: FontWeight.normal,
+                ),
+                textAlign: TextAlign.center,)
+
             ],
           ),
         ),
@@ -87,6 +97,7 @@ class TranscribeResult extends StatelessWidget {
                 icon: Icon(Icons.delete_outline_rounded, color: Colors.white),
                 onPressed: () {
                   print('Delete icon tapped');
+                  _deleteTranscription(context);
                 },
                 iconSize: mq.width * 0.07,
               ),

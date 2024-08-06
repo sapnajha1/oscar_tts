@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:google_fonts/google_fonts.dart';
 import 'package:oscar_stt/ui/views/home/home_view.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:http/http.dart' as http;
 
 import '../../../core/constants/app_colors.dart';
 
@@ -18,7 +21,48 @@ class _LoginViewState extends State<LoginView> {
   Future<void> GoogleLogin() async {
     print('Google login method called');
 
-    GoogleSignIn _googleSignIn = GoogleSignIn();
+    GoogleSignIn _googleSignIn = GoogleSignIn(
+      scopes: [
+        'email',
+        'https://www.googleapis.com/auth/userinfo.profile',
+        'openid', // Ensure openid scope is included
+      ],
+
+    );
+
+    // _googleSignIn.signIn().then((result) {
+    //   result?.authentication.then((googleKey) {
+    //     String? accessToken = googleKey.accessToken;
+    //     String? idToken = googleKey.idToken;
+    //     print("ID Token: $idToken");
+    //     print("Access Token: $accessToken");
+    //     print("Google Sign-In successful");
+    //     print("Signed in as: ${_googleSignIn.currentUser?.displayName}");
+    //     print("Image link: ${_googleSignIn.currentUser?.photoUrl}");
+    //     print("Email-id: ${_googleSignIn.currentUser?.email}");
+    //     print("ID: ${_googleSignIn.currentUser?.id}");
+    //
+    //     if (accessToken != null) {
+    //       _authWithMeraki(accessToken, context);
+    //     } else {
+    //       print("ACCESS TOKEN is NULL");
+    //     }
+    //
+    //     ScaffoldMessenger.of(context).showSnackBar(
+    //       SnackBar(content: Text('Successfully Logged In')),
+    //     );
+    //     Navigator.push(
+    //       context,
+    //       MaterialPageRoute(
+    //         builder: (context) => HomePage(),
+    //       ),
+    //     );
+    //   }).catchError((err) {
+    //     print('Inner error: $err');
+    //   });
+    // }).catchError((err) {
+    //   print('Error occurred: $err');
+    // });
 
     try {
       var result = await _googleSignIn.signIn();
@@ -26,13 +70,24 @@ class _LoginViewState extends State<LoginView> {
 
       googleSignInAccount = result;
       if (result != null) {
+        GoogleSignInAuthentication googleAuth = await result.authentication;
+        String? accessToken = googleAuth.accessToken;
+        String? idToken = googleAuth.idToken;
+        print("ID Token: $idToken");
+        print("Access Token: $accessToken");
+        print("Google Sign-In successful");
         print("Signed in as: ${result.displayName}");
         print("Image link: ${result.photoUrl}");
         print("Email-id: ${result.email}");
         print("Authentication id: ${result.serverAuthCode}");
         print("ID: ${result.id}");
-
         print("Google Sign-In successful");
+
+        if (accessToken != null) {
+          await _authWithMeraki(accessToken, context);
+        }else {
+          print("ACCESS TOKEN is NULL");
+        }
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Successfully Logged In')),
@@ -48,6 +103,28 @@ class _LoginViewState extends State<LoginView> {
       }
     } catch (error) {
       print(error);
+    }
+  }
+
+  Future<void> _authWithMeraki(String accessToken, BuildContext context) async {
+    final String apiUrl = 'https://dev-oscar.merakilearn.org/api/v1/auth/login/google';
+
+    final response = await http.post(
+     Uri.parse(apiUrl),
+     headers: {
+       'Context-Type' : 'application/json',
+     } ,
+      body: json.encode({
+        'access_token' : accessToken,
+      })
+    );
+    if (response.statusCode == 200) {
+      final responseBody = json.decode(response.body);
+      print("Backend Authentication successful: $responseBody");
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Authentication failed'))
+      );
     }
   }
 

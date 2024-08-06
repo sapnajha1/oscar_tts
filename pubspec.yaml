@@ -38,6 +38,13 @@ dependencies:
   provider: ^6.1.2
   google_sign_in: ^6.1.4
   google_fonts: ^5.0.0
+  audio_waveforms: ^1.0.5
+  speech_to_text: ^6.3.0
+  simple_waveform_progressbar: ^0.0.3
+  audio_wave: ^0.1.5
+  flutter_sound: ^9.2.0
+  permission_handler: ^11.3.1
+  avatar_glow: ^3.0.1
 
 dev_dependencies:
   flutter_test:
