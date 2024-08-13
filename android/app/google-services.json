@@ -1,1 +1,29 @@
-//{"installed":{"client_id":"229869143761-fr0t5alq4qb9anu144aer23kpm2cfih6.apps.googleusercontent.com","project_id":"oscarstt","auth_uri":"https://accounts.google.com/o/oauth2/auth","token_uri":"https://oauth2.googleapis.com/token","auth_provider_x509_cert_url":"https://www.googleapis.com/oauth2/v1/certs"}}
+{
+  "project_info": {
+    "project_number": "453105764838",
+    "project_id": "oscar-stt",
+    "storage_bucket": "oscar-stt.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:453105764838:android:2ef7d9cf915e17af1f2e27",
+        "android_client_info": {
+          "package_name": "com.example.oscar_stt"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCm7jX-sI6QfS3O45TfF6WfTa4c_VoeCgU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

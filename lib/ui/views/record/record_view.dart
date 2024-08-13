@@ -9,50 +9,58 @@ import 'dart:io';
 import '../transcribe/transcribe_view.dart';
 
 class RecordView extends StatefulWidget {
+
+  final Function(String) onRecordingComplete;
+  RecordView({required this.onRecordingComplete});
+  
   @override
   _RecordViewState createState() => _RecordViewState();
 }
 
 class _RecordViewState extends State<RecordView> {
-  late final RecorderController recorderController;
+  // late final RecorderController recorderController;
   late stt.SpeechToText _speech;
   String _speechText = '';
-  late String _recordFilePath;
-  late Directory _directory;
+  // late String _recordFilePath;
+  // late Directory _directory;
   Timer? _timer;
   bool _isRecording = false;
   int _seconds = 0;
+  double containerHeight = 180.0;
 
   bool _isDiscardButtonActive = false;
   bool _isKeepRecordingButtonActive = true;
 
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   _speech = stt.SpeechToText();
+  // }
+
   @override
   void initState() {
     super.initState();
-    _initializeControllers();
-    _initializeSpeechToText();
-    _setUpDirectory().then((_) {
+      _initializeSpeechToText();
       _startRecording(); // Start recording immediately after setting up the directory
-    });
   }
 
-  void _initializeControllers() {
-    recorderController = RecorderController()
-      ..androidEncoder = AndroidEncoder.aac
-      ..androidOutputFormat = AndroidOutputFormat.mpeg4
-      ..iosEncoder = IosEncoder.kAudioFormatMPEG4AAC
-      ..sampleRate = 16000;
-  }
+  // void _initializeControllers() {
+  //   recorderController = RecorderController()
+  //     ..androidEncoder = AndroidEncoder.aac
+  //     ..androidOutputFormat = AndroidOutputFormat.mpeg4
+  //     ..iosEncoder = IosEncoder.kAudioFormatMPEG4AAC
+  //     ..sampleRate = 16000;
+  // }
 
   void _initializeSpeechToText() {
     _speech = stt.SpeechToText();
     _checkPermissionAndStartListening();
   }
 
-  Future<void> _setUpDirectory() async {
-    _directory = await getApplicationDocumentsDirectory();
-    _recordFilePath = '${_directory.path}/recording.aac';
-  }
+  // Future<void> _setUpDirectory() async {
+  //   _directory = await getApplicationDocumentsDirectory();
+  //   _recordFilePath = '${_directory.path}/recording.aac';
+  // }
 
   Future<void> _startRecording() async {
     setState(() {
@@ -60,8 +68,7 @@ class _RecordViewState extends State<RecordView> {
       _seconds = 0;
     });
     _startTimer();
-
-    await recorderController.record(path: _recordFilePath);
+    // await recorderController.record(path: _recordFilePath);
   }
 
   Future<void> _stopRecording() async {
@@ -70,15 +77,64 @@ class _RecordViewState extends State<RecordView> {
     });
     _timer?.cancel();
 
-    await recorderController.stop();
-    // Navigator.push(
-    //   context,
-    //   MaterialPageRoute(
-    //     builder: (context) =>
-    //     TranscribeResult()
-    //         // TranscriptionPage(text: _speechText),
-    //   ),
-    // );
+    try {
+      // await recorderController.stop();
+      print('Recording stopped, navigating to TranscribeResult');
+
+      // Navigate to the TranscribeResult page with the transcribed text
+      widget.onRecordingComplete(_speechText);
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => TranscribeResult(
+            transcribedText: _speechText,
+            onDelete: () {
+              widget.onRecordingComplete(''); // In case you want to remove the transcription, pass an empty string
+            },
+          ),
+        ),
+      );
+    } catch (e) {
+      print('Error stopping the recording: $e');
+    }
+  }
+
+
+  // Future<void> _stopRecording() async {
+  //   setState(() {
+  //     _isRecording = false;
+  //   });
+  //   _timer?.cancel();
+  //   await recorderController.stop();
+  //   print('Final speech result: $_speechText');
+  //
+  //   widget.onRecordingComplete(_speechText);  // Pass the transcribed text to HomePage
+  //   Navigator.push(
+  //     context,
+  //     MaterialPageRoute(
+  //       builder: (context) => TranscribeResult(
+  //           transcribedText: _speechText,
+  //         onDelete: () {
+  //           widget.onRecordingComplete(''); // In case you want to remove the transcription, pass an empty string
+  //         },
+  //       ),
+  //     ),
+  //   );
+  // }
+
+  void _navigateToTranscribeResult() {
+    widget.onRecordingComplete(_speechText);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TranscribeResult(
+          transcribedText: _speechText,
+          onDelete: () {
+            widget.onRecordingComplete(''); // Handle deletion
+          },
+        ),
+      ),
+    );
   }
 
   void _startTimer() {
@@ -220,7 +276,7 @@ class _RecordViewState extends State<RecordView> {
   @override
   void dispose() {
     _timer?.cancel();
-    recorderController.dispose();
+    // recorderController.dispose();
     super.dispose();
   }
 
@@ -254,6 +310,8 @@ class _RecordViewState extends State<RecordView> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+
+
                     Text(
                       _isRecording ? _formatTime(_seconds) : "00:00",
                       style: TextStyle(
@@ -263,22 +321,11 @@ class _RecordViewState extends State<RecordView> {
                       ),
                     ),
                     SizedBox(height: 10),
-                    AudioWaveforms(
-                      enableGesture: true,
-                      size: Size(MediaQuery.of(context).size.width, 60.0),
-                      recorderController: recorderController,
-                      waveStyle: WaveStyle(
-                        waveColor: AppColors.ButtonColor2,
-                        extendWaveform: true,
-                        showMiddleLine: false,
-                      ),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12.0),
-                        color: Colors.transparent,
-                      ),
-                      padding: const EdgeInsets.only(left: 5),
-                      margin: const EdgeInsets.symmetric(horizontal: 15),
-                    ),
+                    Image.asset(
+                      'assets1/audioWave.gif',
+                      fit: BoxFit.cover,
+                      height: containerHeight - 40,
+                    )
                   ],
                 ),
               ),
@@ -294,16 +341,13 @@ class _RecordViewState extends State<RecordView> {
               //   onPressed: _stopRecording,
               //   child: Text('Stop'),
               // ),
-              
+
               GestureDetector(
-                onTap: () {
+                onTap: () async {
                   if (_isRecording) {
-                    _stopRecording();
+                    await _stopRecording(); // Stop the current recording session
                   }
-                  setState(() {
-                    _speechText = '';
-                  });
-                  _startRecording();
+                  _startRecording(); // Start a new recording session
                 },
                 child: Image.asset('assets1/Frame 24.png'),
               ),
@@ -321,22 +365,22 @@ class _RecordViewState extends State<RecordView> {
   }
 }
 
-class TranscriptionPage extends StatelessWidget {
-  final String text;
-
-  TranscriptionPage({required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text("Transcription")),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Text(text, style: TextStyle(fontSize: 16)),
-      ),
-    );
-  }
-}
+// class TranscriptionPage extends StatelessWidget {
+//   final String text;
+//
+//   TranscriptionPage({required this.text});
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(title: Text("Transcription")),
+//       body: Padding(
+//         padding: const EdgeInsets.all(8.0),
+//         child: Text(text, style: TextStyle(fontSize: 16)),
+//       ),
+//     );
+//   }
+// }
 
 
 // import 'package:flutter/material.dart';

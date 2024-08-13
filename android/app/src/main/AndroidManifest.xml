@@ -34,7 +34,9 @@
             android:name="flutterEmbedding"
             android:value="2" />
 
-<!--        <meta-data-->
+
+
+        <!--        <meta-data-->
 <!--            android:name="com.google.android.gms.default_web_client_id"-->
 <!--            android:value="@string/default_web_client_id" />-->
     </application>
