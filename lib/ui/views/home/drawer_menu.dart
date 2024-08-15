@@ -266,7 +266,9 @@ class _LoginViewState extends State<LoginView> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => HomePage(),
+            builder: (context) => HomePage(profileName: '', profilePicUrl: '', transcribedata: '', tokenid: '',
+
+            ),
           ),
         );
       } else {
