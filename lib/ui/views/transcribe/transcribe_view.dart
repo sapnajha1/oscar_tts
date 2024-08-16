@@ -37,7 +37,7 @@ class _TranscribeResultState extends State<TranscribeResult> {
     );
 
     // Pop the current page after deletion
-    Navigator.pop(context);
+    Navigator.pop(context,true);
   }
 
   // Future<bool> _onWillPop(BuildContext context) async {
@@ -119,7 +119,8 @@ class _TranscribeResultState extends State<TranscribeResult> {
             //     MaterialPageRoute(
             //     builder: (context) => HomePage( transcribedata: widget.transcribedText, profileName: '', profilePicUrl: '', tokenid: '',),
             // ),);
-            Navigator.pop(context, widget.transcribedText);
+            // Navigator.pop(context, widget.transcribedText);
+            Navigator.pop(context, false);
           },
         ),
         title: Center(

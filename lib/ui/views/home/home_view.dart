@@ -38,10 +38,10 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _refreshTranscriptions();
+    _transcriptionsFuture = ApiService().fetchTranscriptions(widget.tokenid);
   }
 
-  void _refreshTranscriptions() {
+  void _refreshData() {
     setState(() {
       _transcriptionsFuture = ApiService().fetchTranscriptions(widget.tokenid);
     });
@@ -85,7 +85,7 @@ class _HomePageState extends State<HomePage> {
   //     transcriptions.remove(transcription);
   //   });
   // }
-  void _deleteTranscription(String transcriptionId) {
+   _deleteTranscription(String transcriptionId) {
     setState(() {
       // Remove the transcription locally
       _transcriptionsFuture = _transcriptionsFuture.then((transcriptions) {
@@ -310,10 +310,11 @@ class _HomePageState extends State<HomePage> {
                                 color: Colors.black,
                                 size: mq.width * 0.06,
                               ),
-                              onPressed: () {
+                              onPressed: () async {
 
                                 // _deleteTranscription(transcriptions[index]['id'].toString());
-                                _deleteTranscription(transcription['id'].toString());
+                               await _deleteTranscription(transcription['id'].toString(),);
+                               _refreshData();
 
                                 // setState(() {
                                 //   transcriptions.removeAt(index);
@@ -340,7 +341,7 @@ class _HomePageState extends State<HomePage> {
                                 ),
                               );
                               if (updatedTranscription != null) {
-                                _refreshTranscriptions();
+                                _refreshData();
                               }
                             },
                           ),
@@ -364,7 +365,7 @@ class _HomePageState extends State<HomePage> {
             MaterialPageRoute(
               builder: (context) => RecordView(
                 onRecordingComplete: (transcribedText) {
-                  _refreshTranscriptions();
+                  _refreshData();
 
                   // setState(() {
                   //   _transcriptionsFuture = ApiService().fetchTranscriptions(widget.tokenid);
@@ -383,10 +384,10 @@ class _HomePageState extends State<HomePage> {
                 },
                 tokenid: widget.tokenid,
               ),
-            ),
+            )
           );
           if (newTranscription != null) {
-            _refreshTranscriptions();
+            _refreshData();
           }
         },
         child: Image.asset(
