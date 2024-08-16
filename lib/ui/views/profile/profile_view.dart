@@ -201,6 +201,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _signOut(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Signing out...'),
+        duration: Duration(seconds: 1),
+      ),
+    );
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (context) => LoginView()),

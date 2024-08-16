@@ -40,4 +40,6 @@
 <!--            android:name="com.google.android.gms.default_web_client_id"-->
 <!--            android:value="@string/default_web_client_id" />-->
     </application>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+
 </manifest>
