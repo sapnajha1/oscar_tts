@@ -34,12 +34,24 @@ class _HomePageState extends State<HomePage> {
   //   final String token = widget.tokenid;
   // }
 
+
   @override
   void initState() {
     super.initState();
-    // Initialize the future to fetch transcriptions
-    _transcriptionsFuture = ApiService().fetchTranscriptions(widget.tokenid);
+    _refreshTranscriptions();
   }
+
+  void _refreshTranscriptions() {
+    setState(() {
+      _transcriptionsFuture = ApiService().fetchTranscriptions(widget.tokenid);
+    });
+  }
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   // Initialize the future to fetch transcriptions
+  //   _transcriptionsFuture = ApiService().fetchTranscriptions(widget.tokenid);
+  // }
 
   // Future<void> _toggleRecording() async {
   //   Navigator.push(
@@ -68,32 +80,21 @@ class _HomePageState extends State<HomePage> {
   //   );
   // }
 
-  void _deleteTranscription(String transcription) {
-    setState(() {
-      transcriptions.remove(transcription);
-    });
-  }
-  // void _deleteTranscription(String transcriptionId) async {
-  //   try {
-  //     print('Attempting to delete transcription with ID: $transcriptionId');
-  //     String id = transcriptionId.toString();
-  //
-  //     await DeleteApiService().deleteTranscriptionhome(id, widget.tokenid);
-  //
-  //     setState(() {
-  //       _transcriptionsFuture = ApiService().fetchTranscriptions(widget.tokenid);
-  //     });
-  //
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(content: Text('Transcription deleted successfully')),
-  //     );
-  //   } catch (e) {
-  //     print('Error occurred: $e');
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(content: Text('Failed to delete transcription: ${e.toString()}')),
-  //     );
-  //   }
+  // void _deleteTranscription(String transcription) {
+  //   setState(() {
+  //     transcriptions.remove(transcription);
+  //   });
   // }
+  void _deleteTranscription(String transcriptionId) {
+    setState(() {
+      // Remove the transcription locally
+      _transcriptionsFuture = _transcriptionsFuture.then((transcriptions) {
+        return transcriptions.where((transcription) => transcription['id'] != transcriptionId).toList();
+      });
+    });
+
+    // Optionally, call API to delete from backend
+  }
 
 
 
@@ -312,11 +313,12 @@ class _HomePageState extends State<HomePage> {
                               onPressed: () {
 
                                 // _deleteTranscription(transcriptions[index]['id'].toString());
+                                _deleteTranscription(transcription['id'].toString());
 
-                                setState(() {
-                                  transcriptions.removeAt(index);
-                                  // Optionally, call API to delete from backend
-                                });
+                                // setState(() {
+                                //   transcriptions.removeAt(index);
+                                //   // Optionally, call API to delete from backend
+                                // });
                               },
                             ),
                             onTap: () async {
@@ -327,19 +329,19 @@ class _HomePageState extends State<HomePage> {
                                   builder: (context) => TranscribeResult(
                                     transcribedText: transcription['transcribedText'],
                                     onDelete: () {
-                                      setState(() {
-                                        transcriptions.removeAt(index);
-                                      });
+                                      _deleteTranscription(transcription['id'].toString());
+
+                                      // setState(() {
+                                      //   transcriptions.removeAt(index);
+                                      // });
                                     },
                                     tokenid: widget.tokenid,
                                   ),
                                 ),
                               );
-                              // if (updatedTranscription != null) {
-                              //   setState(() {
-                              //     transcriptions[index] = updatedTranscription;
-                              //   });
-                              // }
+                              if (updatedTranscription != null) {
+                                _refreshTranscriptions();
+                              }
                             },
                           ),
                         );
@@ -355,15 +357,18 @@ class _HomePageState extends State<HomePage> {
 
       floatingActionButton: FloatingActionButton(
         shape: const CircleBorder(),
-        onPressed: () {
+        onPressed: () async {
+          final newTranscription = await
           Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => RecordView(
                 onRecordingComplete: (transcribedText) {
-                  setState(() {
-                    _transcriptionsFuture = ApiService().fetchTranscriptions(widget.tokenid);
-                  });
+                  _refreshTranscriptions();
+
+                  // setState(() {
+                  //   _transcriptionsFuture = ApiService().fetchTranscriptions(widget.tokenid);
+                  // });
 
                   Navigator.pushReplacement(
                     context,
@@ -380,6 +385,9 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           );
+          if (newTranscription != null) {
+            _refreshTranscriptions();
+          }
         },
         child: Image.asset(
           'assets1/mic.png',
