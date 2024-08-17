@@ -156,6 +156,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: AppColors.backgroundColor,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         elevation: 0,
         backgroundColor: Colors.transparent,
         title: Row(
@@ -191,9 +192,9 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
         ),),
-    drawer: Container(
-        color: Colors.lightBlue,
-      ),
+    // drawer: Container(
+    //     color: Colors.lightBlue,
+    //   ),
 
       body: RefreshIndicator(
         onRefresh: _refreshData,

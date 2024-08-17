@@ -55,6 +55,8 @@ dependencies:
   printing: ^5.12.0
   share_plus: ^7.2.2
   share: ^2.0.4
+  path_provider: ^2.1.4
+  open_file: ^3.3.2
 
 dev_dependencies:
   flutter_test:
@@ -80,7 +82,7 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-    - assets1/Roboto-Regular.ttf
+    - assets1/
 #    - assets1/fonts/Roboto-Regular.ttf
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
@@ -96,10 +98,10 @@ flutter:
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
   # example:
-#  fonts:
-#    - family: Roboto
-#      fonts:
-#          - asset: assets/fonts/Roboto-Regular.ttf
+  fonts:
+    - family: Roboto
+      fonts:
+          - asset: assets1/fonts/Roboto-Regular.ttf
 #              weight: 400
   #   - family: Schyler
   #     fonts:
