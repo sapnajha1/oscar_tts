@@ -9,6 +9,7 @@ import 'package:oscar_stt/core/constants/app_colors.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'dart:async';
 import 'package:http/http.dart' as http;
+import '../loadingData/loadingData_view.dart';
 import '../transcribe/transcribe_view.dart';
 
 class RecordView extends StatefulWidget {
@@ -47,70 +48,88 @@ void initState() {
   _startRecording();
 }
 
-// Future<String?> _formatText(String originalText) async {
-//   try {
-//     final content = [Content.text('Please correct any grammatical errors in the following sentence: "$originalText"')];
-//     final response = await _model.generateContent(content);
-//
-//     print("API Response: ${response.text}");
-//
-//     if (response.text == null || response.text!.isEmpty) {
-//       print("Generated text was blocked or empty.");
-//       return originalText; // Fallback to the original text if the generated one is blocked
-//     }
-//
-//     return response.text;
-//   } catch (e) {
-//     print("Error using Gemini API: $e");
-//     return originalText; // Return the original text if an error occurs
-//   }
-// }
+
+  // Future<String?> _formatText(String originalText) async {
+  //   try {
+  //     final content = [Content.text('Please correct any grammatical errors in the following sentence: "$originalText"')];
+  //     final response = await _model.generateContent(content);
+  //
+  //     // Print the full response for debugging purposes
+  //     print("API Response: ${response.text}");
+  //
+  //     if (response.text == null || response.text!.isEmpty) {
+  //       print("Generated text was blocked or empty.");
+  //       return originalText; // Fallback to the original text if the generated one is blocked
+  //     }
+  //
+  //     // Extract only the formatted text from the response
+  //     final formattedText = _extractFormattedText(response.text!);
+  //
+  //     return formattedText;
+  //   } catch (e) {
+  //     print("Error using Gemini API: $e");
+  //     return originalText; // Return the original text if an error occurs
+  //   }
+  // }
 
   Future<String?> _formatText(String originalText) async {
     try {
-      final content = [Content.text('Please correct any grammatical errors in the following sentence: "$originalText"')];
+      final content = [Content.text('Please correct any grammatical errors in the following sentence and return only the corrected text: "$originalText"')];
       final response = await _model.generateContent(content);
 
-      // Print the full response for debugging purposes
       print("API Response: ${response.text}");
 
       if (response.text == null || response.text!.isEmpty) {
         print("Generated text was blocked or empty.");
-        return originalText; // Fallback to the original text if the generated one is blocked
+        return originalText; // Return the original text if the generated one is blocked
       }
 
       // Extract only the formatted text from the response
       final formattedText = _extractFormattedText(response.text!);
 
-      return formattedText;
+      // Return the original text if formatted text is empty or identical to the original
+      return formattedText.isEmpty || formattedText == originalText ? originalText : formattedText;
     } catch (e) {
       print("Error using Gemini API: $e");
       return originalText; // Return the original text if an error occurs
     }
   }
 
-
 // Helper function to extract only the formatted text from the API response
+//   String _extractFormattedText(String apiResponse) {
+//     // Remove any metadata or additional information from the API response
+//     // This example assumes that the API response might include extra text before or after the formatted result
+//
+//     final formattedTextPattern = RegExp(r'\*\*(.*?)\*\*'); // Adjust this pattern based on the actual API response format
+//
+//     final match = formattedTextPattern.firstMatch(apiResponse);
+//     if (match != null && match.group(1) != null) {
+//       // Extract the text within the first pair of asterisks
+//       String formattedText = match.group(1)!.trim();
+//       return formattedText.replaceAll('"', ''); // Remove any remaining quotes
+//     }
+//
+//     // Return the original response if no specific pattern is found
+//     return apiResponse.replaceAll('"', '').trim();
+//   }
+
+  // Helper function to extract only the formatted text from the API response
+// Helper function to extract only the core formatted text from the API response
   String _extractFormattedText(String apiResponse) {
-    // Look for the corrected sentence within the API response
-    final startIndex = apiResponse.indexOf('**');
-    if (startIndex == -1) {
-      return apiResponse; // Return the full response if the expected pattern is not found
+    // This pattern assumes that the core text is within double quotes and ignores the rest
+    final formattedTextPattern = RegExp(r'The sentence \"(.*?)\" is grammatically correct\.', caseSensitive: false);
+
+    final match = formattedTextPattern.firstMatch(apiResponse);
+    if (match != null && match.group(1) != null) {
+      // Extract the text within the double quotes
+      return match.group(1)!.trim();
     }
 
-    final endIndex = apiResponse.indexOf('**', startIndex + 2);
-    if (endIndex == -1) {
-      return apiResponse; // Return the full response if the end pattern is not found
-    }
-
-    // Extract the text within the first pair of asterisks
-
-    String formattedText = apiResponse.substring(startIndex + 2, endIndex).trim();
-    formattedText = formattedText.replaceAll('"', '');
-
-
-    return formattedText;
+    // Return the original response if no specific pattern is found
+    return apiResponse.trim();
   }
+
+
 
 
   Future<void> _sendTranscriptionToBackend(String transcribedText , ) async {
@@ -207,6 +226,49 @@ void initState() {
     _startTimer();
   }
 
+  // Future<void> _stopCurrentRecording({bool isRestarting = false}) async {
+  //   setState(() {
+  //     _isRecording = false;
+  //   });
+  //
+  //   _timer?.cancel(); // Stop the timer
+  //
+  //   // Stop the speech recognition
+  //   await _speech.stop();
+  //
+  //   if (!isRestarting) {
+  //     // Ensure that the latest transcription data is what gets sent
+  //     if (_speechText.isNotEmpty) {
+  //       // Format the text
+  //       String? formattedText = await _formatText(_speechText);
+  //
+  //       if (formattedText != null) {
+  //         // Send the formatted transcription to the backend
+  //         await _sendTranscriptionToBackend(formattedText);
+  //
+  //         // Navigate to the transcription result page with the latest transcription
+  //         Navigator.pushReplacement(
+  //           context,
+  //           MaterialPageRoute(
+  //             builder: (context) => TranscribeResult(
+  //               transcribedText: formattedText,
+  //               onDelete: () {
+  //                 widget.onRecordingComplete('');
+  //               },
+  //               tokenid: widget.tokenid,
+  //             ),
+  //           ),
+  //         );
+  //       } else {
+  //         print('No formatted text available.');
+  //       }
+  //     } else {
+  //       print('No new speech was recognized.');
+  //     }
+  //   }
+  // }
+
+
   Future<void> _stopCurrentRecording({bool isRestarting = false}) async {
     setState(() {
       _isRecording = false;
@@ -220,8 +282,10 @@ void initState() {
     if (!isRestarting) {
       // Ensure that the latest transcription data is what gets sent
       if (_speechText.isNotEmpty) {
-        // Format the text
-        String? formattedText = await _formatText(_speechText);
+        // Check if formatting is needed
+        final bool needsFormatting = _checkIfFormattingNeeded(_speechText);
+
+        String? formattedText = needsFormatting ? await _formatText(_speechText) : _speechText;
 
         if (formattedText != null) {
           // Send the formatted transcription to the backend
@@ -249,26 +313,99 @@ void initState() {
     }
   }
 
+  bool _checkIfFormattingNeeded(String text) {
+    // Implement your logic to check if formatting is needed
+    // For example, check if the text contains known errors or patterns
+    return true; // Return true if formatting is needed, false otherwise
+  }
+
+  // Future<void> _stopRecording() async {
+  //   await _stopCurrentRecording();
+  //
+  //   try {
+  //     final transcriptionToSend = _isRestarted ? _speechText : _speechText;
+  //
+  //     String? formattedText = await _formatText(transcriptionToSend);
+  //
+  //     if (formattedText != null) {
+  //       await _sendTranscriptionToBackend(formattedText);
+  //       _isRestarted = false;
+  //
+  //       Navigator.pushReplacement(
+  //         context,
+  //         MaterialPageRoute(
+  //           builder: (context) => TranscribeResult(
+  //             transcribedText: formattedText,
+  //             onDelete: () {
+  //               widget.onRecordingComplete('');
+  //             },
+  //             tokenid: widget.tokenid,
+  //           ),
+  //         ),
+  //       );
+  //     } else {
+  //       print('No formatted text available.');
+  //     }
+  //   } catch (e) {
+  //     print('Error stopping the recording: $e');
+  //   }
+  // }
+
+  // Future<void> _stopRecording() async {
+  //   await _stopCurrentRecording();
+  //
+  //   try {
+  //     final transcriptionToSend = _isRestarted ? _speechText : _speechText;
+  //
+  //     final bool needsFormatting = _checkIfFormattingNeeded(transcriptionToSend);
+  //
+  //     String? formattedText = needsFormatting ? await _formatText(transcriptionToSend) : transcriptionToSend;
+  //
+  //     if (formattedText != null) {
+  //       await _sendTranscriptionToBackend(formattedText);
+  //       _isRestarted = false;
+  //
+  //       Navigator.pushReplacement(
+  //         context,
+  //         MaterialPageRoute(
+  //           builder: (context) => TranscribeResult(
+  //             transcribedText: formattedText,
+  //             onDelete: () {
+  //               widget.onRecordingComplete('');
+  //             },
+  //             tokenid: widget.tokenid,
+  //           ),
+  //         ),
+  //       );
+  //     } else {
+  //       print('No formatted text available.');
+  //     }
+  //   } catch (e) {
+  //     print('Error stopping the recording: $e');
+  //   }
+  // }
+
   Future<void> _stopRecording() async {
-    await _stopCurrentRecording();
-
     try {
-      final transcriptionToSend = _isRestarted ? _speechText : _speechText;
+      await _stopCurrentRecording();
 
-      String? formattedText = await _formatText(transcriptionToSend);
+      final transcriptionToSend = _isRestarted ? _speechText : _speechText;
+      final bool needsFormatting = _checkIfFormattingNeeded(transcriptionToSend);
+
+      String? formattedText = needsFormatting ? await _formatText(transcriptionToSend) : transcriptionToSend;
 
       if (formattedText != null) {
+        print('Navigating to LoadingData with formatted text: $formattedText');
         await _sendTranscriptionToBackend(formattedText);
-        _isRestarted = false;
 
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => TranscribeResult(
+            builder: (context) => LoadingData(
               transcribedText: formattedText,
-              onDelete: () {
-                widget.onRecordingComplete('');
-              },
+              onDelete:
+                widget.onRecordingComplete('')
+              ,
               tokenid: widget.tokenid,
             ),
           ),
