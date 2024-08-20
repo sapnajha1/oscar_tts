@@ -264,12 +264,12 @@ class _TranscribeResultState extends State<TranscribeResult> {
                 onPressed: _shareText,
                 iconSize: mq.width * 0.07,
               ),
-              IconButton(
-                icon: Icon(Icons.file_download_outlined, color: Colors.white),
-                onPressed: _downloadPDF,
-                iconSize: mq.width * 0.07,
-
-              ),
+              // IconButton(
+              //   icon: Icon(Icons.file_download_outlined, color: Colors.white),
+              //   onPressed: _downloadPDF,
+              //   iconSize: mq.width * 0.07,
+              //
+              // ),
               // IconButton(
               //   icon: Icon(Icons.delete_outline_rounded, color: Colors.white),
               //   onPressed: () {

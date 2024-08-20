@@ -222,7 +222,7 @@ class _HomePageState extends State<HomePage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "MY Transcribe (${transcriptions.length})",
+                      "My Transcriptions (${transcriptions.length})",
                       style: TextStyles.defaultTextStyle(
                         fontSize: mq.width * 0.06,
                         fontWeight: FontWeight.bold,

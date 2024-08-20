@@ -1,5 +1,10 @@
+
+
+// .......................................................................................
+
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:oscar_stt/core/constants/app_colors.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'dart:async';
@@ -26,6 +31,88 @@ class _RecordViewState extends State<RecordView> {
   bool _isKeepRecordingButtonActive = true;
   bool _isRestarted = false;
 
+late final GenerativeModel _model;
+final String geminiApiUrl =
+    "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=AIzaSyD2-74-Ol3Yw29b0aG31o9yUnukrW2aHqo"; // Replace with your API key
+
+final Map<String, String> headers = {'Content-Type': 'application/json'};
+String _formattedText = "";
+
+
+@override
+void initState() {
+  super.initState();
+  _model = GenerativeModel(model: 'gemini-1.5-flash', apiKey: 'AIzaSyD2-74-Ol3Yw29b0aG31o9yUnukrW2aHqo'); // Replace 'YOUR_API_KEY' with your actual API key
+  _initializeSpeechToText();
+  _startRecording();
+}
+
+// Future<String?> _formatText(String originalText) async {
+//   try {
+//     final content = [Content.text('Please correct any grammatical errors in the following sentence: "$originalText"')];
+//     final response = await _model.generateContent(content);
+//
+//     print("API Response: ${response.text}");
+//
+//     if (response.text == null || response.text!.isEmpty) {
+//       print("Generated text was blocked or empty.");
+//       return originalText; // Fallback to the original text if the generated one is blocked
+//     }
+//
+//     return response.text;
+//   } catch (e) {
+//     print("Error using Gemini API: $e");
+//     return originalText; // Return the original text if an error occurs
+//   }
+// }
+
+  Future<String?> _formatText(String originalText) async {
+    try {
+      final content = [Content.text('Please correct any grammatical errors in the following sentence: "$originalText"')];
+      final response = await _model.generateContent(content);
+
+      // Print the full response for debugging purposes
+      print("API Response: ${response.text}");
+
+      if (response.text == null || response.text!.isEmpty) {
+        print("Generated text was blocked or empty.");
+        return originalText; // Fallback to the original text if the generated one is blocked
+      }
+
+      // Extract only the formatted text from the response
+      final formattedText = _extractFormattedText(response.text!);
+
+      return formattedText;
+    } catch (e) {
+      print("Error using Gemini API: $e");
+      return originalText; // Return the original text if an error occurs
+    }
+  }
+
+
+// Helper function to extract only the formatted text from the API response
+  String _extractFormattedText(String apiResponse) {
+    // Look for the corrected sentence within the API response
+    final startIndex = apiResponse.indexOf('**');
+    if (startIndex == -1) {
+      return apiResponse; // Return the full response if the expected pattern is not found
+    }
+
+    final endIndex = apiResponse.indexOf('**', startIndex + 2);
+    if (endIndex == -1) {
+      return apiResponse; // Return the full response if the end pattern is not found
+    }
+
+    // Extract the text within the first pair of asterisks
+
+    String formattedText = apiResponse.substring(startIndex + 2, endIndex).trim();
+    formattedText = formattedText.replaceAll('"', '');
+
+
+    return formattedText;
+  }
+
+
   Future<void> _sendTranscriptionToBackend(String transcribedText , ) async {
     final String apiUrl = 'https://dev-oscar.merakilearn.org/api/v1/transcriptions/add'; // Replace with your actual API URL
     try {
@@ -50,12 +137,6 @@ class _RecordViewState extends State<RecordView> {
     }
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _initializeSpeechToText();
-    _startRecording();
-  }
 
   void _initializeSpeechToText() {
     _speech = stt.SpeechToText();
@@ -77,6 +158,47 @@ class _RecordViewState extends State<RecordView> {
     _startRecording(); // Start a new recording session
   }
 
+  // void _restartRecordingSession() async {
+  //   showDialog(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       return AlertDialog(
+  //         title: Text("Do you want to restart again?"),
+  //         actions: [
+  //           TextButton(
+  //             onPressed: () async {
+  //               Navigator.of(context).pop(); // Close the dialog
+  //
+  //               // Stop the current recording and reset states
+  //               await _stopCurrentRecording(isRestarting: true);
+  //
+  //               setState(() {
+  //                 _seconds = 0;
+  //                 _speechText = ''; // Reset timer and transcription text
+  //                 _isRestarted = true;
+  //               });
+  //
+  //               _initializeSpeechToText();
+  //               _startRecording(); // Start a new recording session
+  //
+  //               // Post data to the Meraki POST API
+  //               await _sendTranscriptionToBackend(_speechText);
+  //             },
+  //             child: Text("Restart"),
+  //           ),
+  //           TextButton(
+  //             onPressed: () {
+  //               Navigator.of(context).pop(); // Close the dialog
+  //             },
+  //             child: Text("Discard"),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
+
+
   Future<void> _startRecording() async {
     setState(() {
       _isRecording = true;
@@ -84,43 +206,6 @@ class _RecordViewState extends State<RecordView> {
     });
     _startTimer();
   }
-
-  // Future<void> _stopCurrentRecording({bool isRestarting = false}) async {
-  //   setState(() {
-  //     _isRecording = false;
-  //   });
-  //
-  //   _timer?.cancel(); // Stop the timer
-  //
-  //   // Stop the speech recognition without navigating
-  //   await _speech.stop();
-  //
-  //   // Keep the recorded text
-  //   // widget.onRecordingComplete(_speechText);
-  //   if (!isRestarting) {
-  //     // Ensure we only send new data
-  //     if (_speechText.isNotEmpty) {
-  //       widget.onRecordingComplete(_speechText);
-  //
-  //       // Navigate to the transcription result page only if there's a transcription
-  //       Navigator.pushReplacement(
-  //         context,
-  //         MaterialPageRoute(
-  //           builder: (context) => TranscribeResult(
-  //             transcribedText: _speechText,
-  //             onDelete: () {
-  //               widget.onRecordingComplete('');
-  //             },
-  //             tokenid: widget.tokenid,
-  //           ),
-  //         ),
-  //       );
-  //     } else {
-  //       print('No transcribed text to navigate with.');
-  //     }
-  //   }
-  // }
-
 
   Future<void> _stopCurrentRecording({bool isRestarting = false}) async {
     setState(() {
@@ -134,22 +219,53 @@ class _RecordViewState extends State<RecordView> {
 
     if (!isRestarting) {
       // Ensure that the latest transcription data is what gets sent
-      // _sendAndNavigateWithTranscription();
+      if (_speechText.isNotEmpty) {
+        // Format the text
+        String? formattedText = await _formatText(_speechText);
+
+        if (formattedText != null) {
+          // Send the formatted transcription to the backend
+          await _sendTranscriptionToBackend(formattedText);
+
+          // Navigate to the transcription result page with the latest transcription
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => TranscribeResult(
+                transcribedText: formattedText,
+                onDelete: () {
+                  widget.onRecordingComplete('');
+                },
+                tokenid: widget.tokenid,
+              ),
+            ),
+          );
+        } else {
+          print('No formatted text available.');
+        }
+      } else {
+        print('No new speech was recognized.');
+      }
     }
   }
 
-  void _sendAndNavigateWithTranscription() async {
-    try {
-      if (_speechText.isNotEmpty) {
-        // Send the new transcription to the backend
-        await _sendTranscriptionToBackend(_speechText);
+  Future<void> _stopRecording() async {
+    await _stopCurrentRecording();
 
-        // Navigate to the transcription result page with the latest transcription
+    try {
+      final transcriptionToSend = _isRestarted ? _speechText : _speechText;
+
+      String? formattedText = await _formatText(transcriptionToSend);
+
+      if (formattedText != null) {
+        await _sendTranscriptionToBackend(formattedText);
+        _isRestarted = false;
+
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (context) => TranscribeResult(
-              transcribedText: _speechText,
+              transcribedText: formattedText,
               onDelete: () {
                 widget.onRecordingComplete('');
               },
@@ -158,76 +274,13 @@ class _RecordViewState extends State<RecordView> {
           ),
         );
       } else {
-        print('No new speech was recognized.');
+        print('No formatted text available.');
       }
     } catch (e) {
       print('Error stopping the recording: $e');
     }
   }
 
-
-  // Future<void> _stopRecording() async {
-  //   await _stopCurrentRecording();
-  //   try {
-  //     // Send the transcription to the backend
-  //     await _sendTranscriptionToBackend(_speechText);
-  //
-  //     // Navigate to the transcription result page
-  //     Navigator.pushReplacement(
-  //       context,
-  //       MaterialPageRoute(
-  //         builder: (context) => TranscribeResult(
-  //           transcribedText: _speechText,
-  //           onDelete: () {
-  //             widget.onRecordingComplete('');
-  //           },
-  //           tokenid: widget.tokenid,
-  //         ),
-  //       ),
-  //     );
-  //   } catch (e) {
-  //     print('Error stopping the recording: $e');
-  //   }
-  // }
-
-
-  Future<void> _stopRecording() async {
-    await _stopCurrentRecording();
-
-    try {
-      // Determine which transcription data to use
-      final transcriptionToSend = _isRestarted ? _speechText : _speechText;
-
-      // Send the transcription to the backend
-      await _sendTranscriptionToBackend(transcriptionToSend);
-
-      // Reset the restart flag
-      _isRestarted = false;
-
-      // Navigate to the transcription result page
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => TranscribeResult(
-            transcribedText: transcriptionToSend,
-            onDelete: () {
-              widget.onRecordingComplete('');
-            },
-            tokenid: widget.tokenid,
-          ),
-        ),
-      );
-    } catch (e) {
-      print('Error stopping the recording: $e');
-    }
-  }
-  // void _restartRecording() async {
-  //   if (_isRecording) {
-  //     await _stopCurrentRecording(); // Stop the current recording session
-  //   }
-  //   _startRecording();
-  //   _startTimer(); // Start a new recording session
-  // }
 
 
   void _startTimer() {
@@ -435,7 +488,5 @@ class _RecordViewState extends State<RecordView> {
     );
   }
 }
-
-
 
 
