@@ -3,6 +3,8 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
+  // backgroundColor: Color.fromRGBO(220, 236, 235, 1.0),
+
   static const Color backgroundColor = Color.fromRGBO(220, 236, 235, 1.0);
   static const Color ButtonColor2 =  Color.fromRGBO(81, 160, 155, 1.0);
   // static const Color Buttolor2 =   Color.fromRGBO(81, 160, 155, 1.0);

@@ -36,39 +36,47 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
   provider: ^6.1.2
-  google_sign_in: ^6.1.4
-  google_fonts: ^5.0.0
-  audio_waveforms: ^1.0.5
-  speech_to_text: ^6.3.0
-  simple_waveform_progressbar: ^0.0.3
-  audio_wave: ^0.1.5
-  flutter_sound: ^9.2.0
+  google_sign_in: ^6.2.1
+  google_fonts: ^6.2.1
+#  audio_waveforms: ^1.0.5
+  speech_to_text: ^7.0.0
+#  simple_waveform_progressbar: ^0.0.3
+#  audio_wave: ^0.1.5
+#  flutter_sound: ^9.2.0
   permission_handler: ^11.3.1
-  avatar_glow: ^3.0.1
-  firebase_core: ^2.13.1
-  firebase_auth: ^4.6.2
-  webview_flutter: ^4.8.0
-  dio: ^4.0.6
+#  avatar_glow: ^3.0.1
+#  firebase_core: ^2.13.1
+#  firebase_auth: ^4.6.2
+#  webview_flutter: ^4.8.0
+#  dio: ^4.0.6
   url_launcher: ^6.3.0
-  shared_preferences: ^2.2.3
-  pdf: ^3.11.1
-  printing: ^5.12.0
-  share_plus: ^7.2.2
-  share: ^2.0.4
+#  shared_preferences: ^2.2.3
+#  pdf: ^3.11.1
+#  printing: ^5.12.0
+  share_plus: ^10.0.2
+#  share: ^2.0.4
   path_provider: ^2.1.4
-  open_file: ^3.3.2
+#  open_file: ^3.3.2
   google_generative_ai: ^0.4.5
+  shared_preferences: ^2.3.2
+  flutter_svg: ^2.0.10+1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: "^0.13.1"
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets1/oscaricon.png"
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^2.0.0
+  flutter_lints: ^4.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
