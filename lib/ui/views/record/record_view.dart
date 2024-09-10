@@ -61,7 +61,7 @@ class _RecordViewState extends State<RecordView> {
 
   void _startTimer() {
     _isTimerRunning = true;
-    _isPaused = false;
+    // _isPaused = false;
     _timer = Timer.periodic(Duration(seconds: 1), ( Timer timer) {
       setState(() {
         _seconds++;
@@ -71,7 +71,7 @@ class _RecordViewState extends State<RecordView> {
 
   void _pauseTimer() {
     _isTimerRunning = false;
-    _isPaused = true;
+    // _isPaused = true;
     _timer?.cancel();
   }
 
@@ -89,9 +89,9 @@ class _RecordViewState extends State<RecordView> {
   void _stopTimer() {
     _isTimerRunning = false;
     _timer?.cancel();
-    setState(() {
-      _start = 0; // Reset the timer
-    });
+    // setState(() {
+    //   _start = 0; // Reset the timer
+    // });
   }
 
   void _showRestartAlert() {
@@ -151,7 +151,11 @@ class _RecordViewState extends State<RecordView> {
     try {
       final content = [
         Content.text(
-            'Please correct any grammatical errors in the following sentence and return only the corrected text: "$originalText"')
+          'You are an advanced AI language model with the ability to understand and transcribe spoken inputs in multiple languages, including Hindi, English, and mixed-language phrases. Your tasks are as follows:1. **Transcribe Accurately:** Transcribe the spoken input accurately, retaining the original meaning and context, even if the input contains a mix of languages (e.g., Hindi and English) or is poorly structured.2. **Language Detection and Selective Translation:** Identify any non-English segments in the input. Translate these segments into English **without altering the original meaning**. Ensure that the translation is contextually appropriate.3**Error Correction with Context Preservation:** Correct any grammatical errors, spelling mistakes, or idiomatic inaccuracies **without changing the intended meaning** of the input. Your goal is to maintain the original messages intent while improving readability and correctness.4. **Final Output:** Provide the final output in clear, correct English. Ensure that the output preserves the original meaning of the input, with proper grammar, spelling, and punctuation.\n: "$originalText"',
+            // "Please correct the following text for any spelling and grammatical errors, and slightly paraphrase it while keeping the original language:\n: $originalText"
+            // 'Please translate correct any grammatical errors in the following sentence and return only the corrected text: "$originalText"'
+        )            // 'Please correct any grammatical errors in the following sentence and return only the corrected text: "$originalText"'
+
       ];
       final response = await _model.generateContent(content);
 
@@ -227,7 +231,7 @@ class _RecordViewState extends State<RecordView> {
         String? formattedText = needsFormatting ? await _formatText(_speechText) : _speechText;
 
         if (formattedText != null) {
-          await _sendTranscriptionToBackend(formattedText);
+          // await _sendTranscriptionToBackend(formattedText);
           _hasTranscriptionBeenSent = true; // Mark as sent
 
           Navigator.pushReplacement(
@@ -266,7 +270,7 @@ class _RecordViewState extends State<RecordView> {
         String? formattedText = await _formatText(transcriptionToSend);
 
         if (formattedText != null) {
-          await _sendTranscriptionToBackend(formattedText);
+          // await _sendTranscriptionToBackend(formattedText);
           _isRestarted = false;
 
           Navigator.pushReplacement(
@@ -291,7 +295,37 @@ class _RecordViewState extends State<RecordView> {
     }
   }
 
-
+  // Future<void> _stopRecording() async {
+  //   if (!_isRecording) return; // Avoid multiple stops
+  //
+  //   setState(() {
+  //     _isRecording = false;
+  //   });
+  //
+  //   _stopTimer();
+  //   await _speech.stop();
+  //
+  //   if (_speechText.isNotEmpty) {
+  //     String? formattedText = await _formatText(_speechText);
+  //     if (formattedText != null) {
+  //       Navigator.pushReplacement(
+  //         context,
+  //         MaterialPageRoute(
+  //           builder: (context) => TranscribeResult(
+  //             transcribedText: formattedText,
+  //             onDelete: () {
+  //               widget.onRecordingComplete('');
+  //               _hasTranscriptionBeenSent = false;
+  //             },
+  //             tokenid: widget.tokenid,
+  //           ),
+  //         ),
+  //       );
+  //     }
+  //   } else {
+  //     print('No speech recognized.');
+  //   }
+  // }
 
 
 
@@ -299,32 +333,32 @@ class _RecordViewState extends State<RecordView> {
 
   bool _isTranscriptionSent = false;
 
-  Future<void> _sendTranscriptionToBackend(String transcribedText , ) async {
-    if (_isTranscriptionSent) return; // Avoid duplicate posting
-    final String apiUrl = 'https://dev-oscar.merakilearn.org/api/v1/transcriptions/add'; // Replace with your actual API URL
-    try {
-      final response = await http.post(
-        Uri.parse(apiUrl),
-        headers: <String, String>{
-          'Authorization': 'Bearer ${widget.tokenid}',
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: jsonEncode(<String, String>{
-          'transcribedText': transcribedText,
-        }),
-      );
-      if (response.statusCode == 201) {
-        print('Transcription successfully sent: ${response.statusCode}');
-        // Handle success response if needed
-      } else {
-        print('Failed to send transcription: ${response.statusCode}');
-      }
-    } catch (e) {
-      print('Error during sending transcription: $e');
-    }
-  }
+  // Future<void> _sendTranscriptionToBackend(String transcribedText , ) async {
+  //   if (_isTranscriptionSent) return; // Avoid duplicate posting
+  //   final String apiUrl = 'https://dev-oscar.merakilearn.org/api/v1/transcriptions/add'; // Replace with your actual API URL
+  //   try {
+  //     final response = await http.post(
+  //       Uri.parse(apiUrl),
+  //       headers: <String, String>{
+  //         'Authorization': 'Bearer ${widget.tokenid}',
+  //         'Content-Type': 'application/json; charset=UTF-8',
+  //       },
+  //       body: jsonEncode(<String, String>{
+  //         'transcribedText': transcribedText,
+  //       }),
+  //     );
+  //     if (response.statusCode == 201) {
+  //       print('Transcription successfully sent: ${response.statusCode}');
+  //       // Handle success response if needed
+  //     } else {
+  //       print('Failed to send transcription: ${response.statusCode}');
+  //     }
+  //   } catch (e) {
+  //     print('Error during sending transcription: $e');
+  //   }
+  // }
 
-
+//???????????????????????????????????????????????????????????????????????????????????????????????????
   void _initializeSpeechToText() {
     _speech = stt.SpeechToText();
     _checkPermissionAndStartListening();
@@ -619,7 +653,7 @@ class _RecordViewState extends State<RecordView> {
       backgroundColor: Color.fromRGBO(220, 236, 235, 1.0),
 
       appBar: AppBar(
-        backgroundColor: AppColors.backgroundColor,
+        backgroundColor: Colors.transparent,
 
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios),
@@ -644,6 +678,7 @@ class _RecordViewState extends State<RecordView> {
                 height: mq.height * 0.2,
                 decoration: BoxDecoration(
                   color: AppColors.ButtonColor,
+                  // color: Colors.red,
                   borderRadius: BorderRadius.all(
                     Radius.circular(mq.width * 0.03),
                   ),

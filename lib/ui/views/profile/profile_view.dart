@@ -1,6 +1,7 @@
 
 
 import 'dart:io';
+import 'package:flutter_email_sender/flutter_email_sender.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:oscar_stt/core/constants/app_colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -254,7 +255,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   (route) => false,
             );
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Log out')),
+              SnackBar(content: Text('Log out..')),
             );
           },
           child: Container(
@@ -344,8 +345,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
 
+  // Future<void> _launchEmailClient() async {
+  //   final Email email = Email(
+  //     body: '',
+  //     subject: 'Support Request',
+  //     recipients: [contactEmail],
+  //     isHTML: false,
+  //   );
+  //
+  //   try {
+  //     await FlutterEmailSender.send(email);
+  //
+  //     // If email is successfully sent, show success popup
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text('Email sent successfully'),
+  //         backgroundColor: Colors.green,
+  //       ),
+  //     );
+  //   } catch (error) {
+  //     // Handle failure or if the email is not sent
+  //     print('Email not sent: $error');
+  //   }
+  // }
 
-
+  //
+  //
     Future<void> _launchEmailClient() async {
     final Uri emailLaunchUri = Uri(
       scheme: 'mailto',

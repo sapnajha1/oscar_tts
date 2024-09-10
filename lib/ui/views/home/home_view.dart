@@ -39,33 +39,53 @@ class _HomePageState extends State<HomePage> {
   late Future<List<Map<String, dynamic>>> _transcriptionsFuture;
   List<Map<String, dynamic>> _currentTranscriptions = [];
 
+  //
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   _transcriptionsFuture = ApiService().fetchTranscriptions(widget.tokenid);
+  //
+  //
+  //
+  //   WidgetsBinding.instance.addPostFrameCallback((_) {
+  //     if (ModalRoute.of(context)?.settings.arguments == true) {
+  //       _showRefreshAlertDialog();
+  //       _refreshData(); // Refresh data when returning from another page
+  //
+  //     }
+  //   });
+  // }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Fetch fresh data every time the dependencies change, i.e., when the user comes back to this page
+    _transcriptionsFuture = ApiService().fetchTranscriptions(widget.tokenid);
+  }
 
   @override
   void initState() {
     super.initState();
-    _transcriptionsFuture = ApiService().fetchTranscriptions(widget.tokenid);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (ModalRoute.of(context)?.settings.arguments == true) {
         _showRefreshAlertDialog();
         _refreshData(); // Refresh data when returning from another page
-
       }
     });
   }
 
-
   // /////////////////////////////////////////////////////////////////////
   bool _showPopupFlag = false;
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (_showPopupFlag) {
-      _showPopup();
-      _showPopupFlag = false; // Reset the flag
-    }
-  }
+  // @override
+  // void didChangeDependencies() {
+  //   super.didChangeDependencies();
+  //   if (_showPopupFlag) {
+  //     _showPopup();
+  //     _showPopupFlag = false; // Reset the flag
+  //   }
+  // }
 
   Future<void> _navigateToTranscribeResult() async {
     final result = await Navigator.push(
@@ -146,6 +166,24 @@ class _HomePageState extends State<HomePage> {
   //   });
   // }
 
+// Inside HomePage when navigating to TranscriptionPage
+//   void _navigateToTranscriptionPage(BuildContext context) async {
+//     final result = await Navigator.push(
+//       context,
+//       MaterialPageRoute(builder: (context) => TranscribeResult(onDelete: _confirmDeleteTranscription, transcribedText: '', tokenid: '',)),
+//     );
+//
+//     if (result == 'Transcription deleted') {
+//       ScaffoldMessenger.of(context).showSnackBar(
+//         SnackBar(content: Text('Your transcription has been deleted')),
+//       );
+//     }
+//   }
+//
+//   void _onDeleteCallback() {
+//     // This will be triggered when transcription is deleted in the TranscriptionPage
+//     // You can handle any additional logic here (if needed)
+//   }
 
 
   void _showRefreshAlertDialog() {
@@ -192,7 +230,90 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  void _navigateToTranscriptionPage(BuildContext context) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TranscribeResult(
+          onDelete: () => _confirmDeleteTranscription(context as String), transcribedText: '', tokenid: '', // Pass the callback here
+        ),
+      ),
+    );
 
+    if (result == 'Transcription deleted') {
+      // Handle additional logic after navigating back, if necessary
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Your transcription has been deleted')),
+      );
+    }
+  }
+
+  /////////////////////////////////////////////////////////////////////////////////////////
+  // Future<void> _confirmDeleteTranscription(String transcriptionId) async {
+  //   bool? isConfirmed = await showDialog<bool>(
+  //     context: context,
+  //     barrierDismissible: true,
+  //     builder: (BuildContext context) {
+  //       return AlertDialog(
+  //         shape: RoundedRectangleBorder(
+  //           borderRadius: BorderRadius.zero,
+  //         ),
+  //         title: Text('Confirm Delete'),
+  //         content: Text('Are you sure you want to delete this note?'),
+  //         actions: <Widget>[
+  //           SizedBox(height: 20.0),
+  //           Container(
+  //             decoration: BoxDecoration(
+  //               color: Colors.red,
+  //               borderRadius: BorderRadius.circular(50.0),
+  //             ),
+  //             padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 5.0),
+  //             child: TextButton(
+  //               child: Text('Cancel'),
+  //               style: TextButton.styleFrom(
+  //                 foregroundColor: Colors.white,
+  //               ),
+  //               onPressed: () {
+  //                 Navigator.of(context).pop(false); // Dismiss dialog and return false
+  //               },
+  //             ),
+  //           ),
+  //           Container(
+  //             decoration: BoxDecoration(
+  //               color: AppColors.ButtonColor2,
+  //               borderRadius: BorderRadius.circular(50.0),
+  //             ),
+  //             padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 5.0),
+  //             child: TextButton(
+  //               child: Text(
+  //                 'Delete',
+  //                 style: TextStyle(color: Colors.white),
+  //               ),
+  //               onPressed: () {
+  //                 Navigator.of(context).pop(true); // Dismiss dialog and return true
+  //               },
+  //             ),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  //
+  //   if (isConfirmed ?? false) {
+  //     bool deleted = await _deleteTranscription(transcriptionId); // Perform deletion
+  //
+  //     if (deleted) {
+  //       Navigator.of(context).pop('Transcription deleted'); // Return result to HomePage
+  //     }
+  //   }
+  // }
+  //
+  // Future<bool> _deleteTranscription(String transcriptionId) async {
+  //   // Your deletion logic here
+  //   // Return true if deletion was successful, false otherwise
+  // }
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////
 
   Future<void> _confirmDeleteTranscription(String transcriptionId) async {
     return showDialog<void>(
@@ -210,10 +331,15 @@ class _HomePageState extends State<HomePage> {
 
             Container(
 
-              child: TextButton(
+            decoration: BoxDecoration(
+            color: Colors.red,
+            borderRadius: BorderRadius.circular(50.0),),
+        padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 5.0),
+
+        child: TextButton(
                 child: Text('Cancel'),
                 style: TextButton.styleFrom(
-                  foregroundColor: Colors.red, // Text color
+                  foregroundColor: Colors.white, // Text color
                 ),
                 onPressed: () {
                   Navigator.of(context).pop(); // Dismiss the dialog
@@ -241,6 +367,9 @@ class _HomePageState extends State<HomePage> {
         );
       },
     );
+
+
+
   }
   void _deleteTranscription(String transcriptionId) async {
     try {
@@ -277,7 +406,7 @@ class _HomePageState extends State<HomePage> {
       print('Error: $e');
     }
   }
-  //
+  /////////////////////////////////////////////////////////
   Future<List<Map<String, dynamic>>> _fetchTranscriptions() async {
     final response = await http.get(
       Uri.parse('https://dev-oscar.merakilearn.org/api/v1/transcriptions'),
@@ -307,11 +436,11 @@ class _HomePageState extends State<HomePage> {
 
       appBar:
       AppBar(
-        backgroundColor: AppColors.backgroundColor,
-
+        backgroundColor:Color.fromRGBO(220, 236, 235, 1.0),
+        scrolledUnderElevation: 0.0,
         automaticallyImplyLeading: false,
         elevation: 0,
-        // backgroundColor: Colors.transparent,
+        // backgroundColor: Colo,
         title: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             SvgPicture.asset(
@@ -401,7 +530,7 @@ class _HomePageState extends State<HomePage> {
                           child: Padding(
                             padding: EdgeInsets.all(mq.width * 0.05),
                             child: Text(
-                              "My Transcriptions (0)",
+                              "My Transcripts (0)",
                               style: TextStyles.defaultTextStyle(
                                 fontSize: mq.width * 0.06,
                                 fontWeight: FontWeight.bold,
@@ -410,21 +539,21 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
 
-                        SizedBox(height: mq.height * 0.05),
-                        IconButton(
-                          icon: Icon(Icons.refresh, color: AppColors.ButtonColor,),
-                          onPressed: () {
-                            if (_currentTranscriptions.isEmpty) {
-                              _refreshData();
-                            }
-                          },
-                        ),
-                        Text(
-                          'Refresh your page',
-                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
-                        ),
+                        SizedBox(height: mq.height * 0.20),
+                        // IconButton(
+                        //   icon: Icon(Icons.refresh, color: AppColors.ButtonColor,),
+                        //   onPressed: () {
+                        //     if (_currentTranscriptions.isEmpty) {
+                        //       _refreshData();
+                        //     }
+                        //   },
+                        // ),
+                        // Text(
+                        //   'Refresh your page',
+                        //   style: TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
+                        // ),
 
-                        Spacer(), // Pushes content to the center
+                        // Spacer(), // Pushes content to the center
 
                         // The image
                         Image.asset(
@@ -434,13 +563,13 @@ class _HomePageState extends State<HomePage> {
                         ),
 
                         Padding(
-                          padding: const EdgeInsets.only(top: 16.0), // Add space between the image and text
+                          padding: const EdgeInsets.all(10.0), // Add space between the image and text
                           child: Text(
                             "We are excited to see what your first transcription will be",
                             textAlign: TextAlign.center,
                             style: TextStyles.defaultTextStyle(
                               fontSize: mq.width * 0.05,
-                              fontWeight: FontWeight.normal,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
@@ -479,7 +608,8 @@ class _HomePageState extends State<HomePage> {
                           radius: Radius.circular(80.0),
                         ),
                       ),
-                      child: ListView.builder(
+                      child:
+                      ListView.builder(
                         padding: EdgeInsets.symmetric(horizontal: mq.width * 0.05), // Added padding on left and right
                         itemCount: transcriptions.length,
                         itemBuilder: (context, index) {
@@ -496,10 +626,12 @@ class _HomePageState extends State<HomePage> {
                                     height: 70.0,
                                     child: Scrollbar(
                                       child: SingleChildScrollView(
-                                        child: Text(
-                                          transcription['transcribedText'],
-                                          style: TextStyle(
-                                            fontSize: 16.0,
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(right: 8.0,left: 8.0),                                          child: Text(
+                                            transcription['transcribedText'],
+                                            style: TextStyle(
+                                              fontSize: 16.0,
+                                            ),
                                           ),
                                         ),
                                       ),
@@ -531,7 +663,7 @@ class _HomePageState extends State<HomePage> {
                                           icon: Icon(
                                             Icons.delete_outline_rounded,
                                             color: Colors.black,
-                                            size: 16.0,
+                                            size: 17.0,
                                           ),
                                           onPressed: () {
                                             _confirmDeleteTranscription(transcription['id'].toString());
@@ -554,55 +686,132 @@ class _HomePageState extends State<HomePage> {
           },
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        shape: const CircleBorder(),
-        onPressed: () async {
-          final newTranscription = await
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => RecordView(
-                  onRecordingComplete: (transcribedText) {
-                    _refreshData();
-                    Navigator.pop(context, true); // Return true to indicate that new transcription is added
 
-                    setState(() {
-                      _transcriptionsFuture = _fetchTranscriptions();
-                    });
+    //   floatingActionButton: FloatingActionButton(
+    //     shape: const CircleBorder(),
+    //     onPressed: () async {
+    //       final newTranscription = await
+    //       Navigator.push(
+    //           context,
+    //           MaterialPageRoute(
+    //             builder: (context) => RecordView(
+    //               onRecordingComplete: (transcribedText) {
+    //                 _refreshData();
+    //                 Navigator.pop(context, true); // Return true to indicate that new transcription is added
+    //
+    //                 setState(() {
+    //                   _transcriptionsFuture = _fetchTranscriptions();
+    //                 });
+    //
+    //                 // setState(() {
+    //                 //   _transcriptionsFuture = ApiService().fetchTranscriptions(widget.tokenid);
+    //                 // });
+    //
+    //                 Navigator.pushReplacement(
+    //                   context,
+    //                   MaterialPageRoute(
+    //                     builder: (context) => TranscribeResult(
+    //                       transcribedText: transcribedText,
+    //                       onDelete: () => _deleteTranscription(transcribedText),
+    //                       tokenid: widget.tokenid,
+    //                     ),
+    //                   ),
+    //                 );
+    //               },
+    //               tokenid: widget.tokenid,
+    //             ),
+    //           )
+    //       );
+    //       if (newTranscription != null && newTranscription == true) {
+    //         _refreshData();
+    //       }
+    //     },
+    //     child: Container(
+    //       width: 100.0, // Adjust the size of the circular container
+    //       height: 100.0,
+    //       decoration: BoxDecoration(
+    //         color: Colors.red, // Set the background color to yellow
+    //         shape: BoxShape.circle, // Make the container circular
+    //       ),
+    //       child: Image.asset(
+    //         'assets1/mic.png',
+    //         width: 40.0,
+    //         height: 40.0,
+    //       ),
+    //     ),
+    //     backgroundColor: AppColors.ButtonColor2,
+    //   ),
+    //
+    //   floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+    //
+    //
+    //   // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    //   //
+    //   //
+    //   //
+    //   // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    // );
 
-                    // setState(() {
-                    //   _transcriptionsFuture = ApiService().fetchTranscriptions(widget.tokenid);
-                    // });
 
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => TranscribeResult(
-                          transcribedText: transcribedText,
-                          onDelete: () => _deleteTranscription(transcribedText),
-                          tokenid: widget.tokenid,
+
+      floatingActionButton: Stack(
+        alignment: Alignment.center,
+        children: <Widget>[
+          // Larger circular container
+          Container(
+            width: 100.0,
+            height: 100.0,
+            decoration: BoxDecoration(
+              color: AppColors.flotingButton, // Set the background color to yellow
+              shape: BoxShape.circle,
+            ),
+          ),
+          // Mic image inside the container
+          GestureDetector(
+            onTap: () async {
+              final newTranscription = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => RecordView(
+                    onRecordingComplete: (transcribedText) {
+                      _refreshData();
+                      Navigator.pop(context, true);
+
+                      setState(() {
+                        _transcriptionsFuture = _fetchTranscriptions();
+                      });
+
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => TranscribeResult(
+                            transcribedText: transcribedText,
+                            onDelete: () => _deleteTranscription(transcribedText),
+                            tokenid: widget.tokenid,
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                  tokenid: widget.tokenid,
+                      );
+                    },
+                    tokenid: widget.tokenid,
+                  ),
                 ),
-              )
-          );
-          if (newTranscription != null && newTranscription == true) {
-            _refreshData();
-          }
-        },
-        child: Image.asset(
-          'assets1/mic.png',
-          width: 40.0,
-          height: 40.0,
-        ),
-        backgroundColor: AppColors.ButtonColor2,
-      ),
+              );
+              if (newTranscription != null && newTranscription == true) {
 
+                _refreshData();
+              }
+            },
+            child: Image.asset(
+              'assets1/mic.png',
+              width: 60.0, // Adjust size of the mic image
+              height: 60.0,
+            ),
+          ),
+        ],
+      ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
+
   }
 }
 
