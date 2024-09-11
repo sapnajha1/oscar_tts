@@ -1,7 +1,6 @@
 
 
 import 'dart:io';
-import 'package:flutter_email_sender/flutter_email_sender.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:oscar_stt/core/constants/app_colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -242,9 +241,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildCustomSignOutButton(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0), // Adjust padding as needed
+      padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
       child: Align(
-        alignment: Alignment.bottomLeft, // Align to the bottom left of the screen
+        alignment: Alignment.bottomLeft,
         child: GestureDetector(
           onTap: () async {
             await GoogleSignIn().signOut();
@@ -345,32 +344,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
 
-  // Future<void> _launchEmailClient() async {
-  //   final Email email = Email(
-  //     body: '',
-  //     subject: 'Support Request',
-  //     recipients: [contactEmail],
-  //     isHTML: false,
-  //   );
-  //
-  //   try {
-  //     await FlutterEmailSender.send(email);
-  //
-  //     // If email is successfully sent, show success popup
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(
-  //         content: Text('Email sent successfully'),
-  //         backgroundColor: Colors.green,
-  //       ),
-  //     );
-  //   } catch (error) {
-  //     // Handle failure or if the email is not sent
-  //     print('Email not sent: $error');
-  //   }
-  // }
 
-  //
-  //
     Future<void> _launchEmailClient() async {
     final Uri emailLaunchUri = Uri(
       scheme: 'mailto',

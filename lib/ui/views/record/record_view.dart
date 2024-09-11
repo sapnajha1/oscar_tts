@@ -1,15 +1,11 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
-import 'package:http/http.dart' as http;
 import 'package:oscar_stt/core/constants/app_colors.dart';
-import 'package:oscar_stt/ui/views/record/recording2.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
-import '../loadingData/loadingData_view.dart';
 import '../transcribe/transcribe_view.dart';
 
 class RecordView extends StatefulWidget {
@@ -31,10 +27,7 @@ class _RecordViewState extends State<RecordView> {
   bool _isDiscardButtonActive = false;
   bool _isKeepRecordingButtonActive = true;
   bool _isRestarted = false;
-  double _progressValue = 0.0;
   bool _isPaused = false;
-  bool _isTimerRunning = false;
-  int _start = 0;
   bool _isLoading = false;
 
 
@@ -46,7 +39,6 @@ class _RecordViewState extends State<RecordView> {
       "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=AIzaSyD2-74-Ol3Yw29b0aG31o9yUnukrW2aHqo"; // Replace with your API key
 
   final Map<String, String> headers = {'Content-Type': 'application/json'};
-  String _formattedText = "";
 
 
   @override
@@ -60,7 +52,6 @@ class _RecordViewState extends State<RecordView> {
 
 
   void _startTimer() {
-    _isTimerRunning = true;
     // _isPaused = false;
     _timer = Timer.periodic(Duration(seconds: 1), ( Timer timer) {
       setState(() {
@@ -70,74 +61,63 @@ class _RecordViewState extends State<RecordView> {
   }
 
   void _pauseTimer() {
-    _isTimerRunning = false;
     // _isPaused = true;
     _timer?.cancel();
   }
 
   void _resumeTimer() {
     if (!_isPaused) return;
-    _isTimerRunning = true;
     _isPaused = false;
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
       setState(() {
-        _start++;
       });
     });
   }
 
-  void _stopTimer() {
-    _isTimerRunning = false;
-    _timer?.cancel();
-    // setState(() {
-    //   _start = 0; // Reset the timer
-    // });
-  }
 
-  void _showRestartAlert() {
-    _pauseTimer(); // Pause the timer when the alert is shown
+// Will use later............................
+  // void _showRestartAlert() {
+  //   _pauseTimer(); // Pause the timer when the alert is shown
+  //
+  //   showDialog(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       return AlertDialog(
+  //         title: Text('Do you want to restart again?'),
+  //         actions: <Widget>[
+  //           TextButton(
+  //             child: Text('Restart'),
+  //             onPressed: () {
+  //               Navigator.of(context).pop();
+  //               _resetRecording();
+  //             },
+  //           ),
+  //           TextButton(
+  //             child: Text('No'),
+  //             onPressed: () {
+  //               Navigator.of(context).pop();
+  //               _resumeTimer(); // Resume the timer if it was paused
+  //             },
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
 
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Do you want to restart again?'),
-          actions: <Widget>[
-            TextButton(
-              child: Text('Restart'),
-              onPressed: () {
-                Navigator.of(context).pop();
-                _resetRecording();
-              },
-            ),
-            TextButton(
-              child: Text('No'),
-              onPressed: () {
-                Navigator.of(context).pop();
-                _resumeTimer(); // Resume the timer if it was paused
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _resetRecording() {
-    _start = 0;
-    _startTimer(); // Restart the timer
-
-    // Restart recording
-    setState(() {
-      _isRecording = true;
-    });
-    // Add your code to start recording here
-  }
+  // void _resetRecording() {
+  //   _startTimer(); // Restart the timer
+  //
+  //   // Restart recording
+  //   setState(() {
+  //     _isRecording = true;
+  //   });
+  //   // Add your code to start recording here
+  // }
 
   @override
   void dispose() {
     _timer?.cancel();
-    // Stop recording if needed
     super.dispose();
   }
 
@@ -185,7 +165,6 @@ class _RecordViewState extends State<RecordView> {
 
 
   String _extractFormattedText(String apiResponse) {
-    // This pattern assumes that the core text is within double quotes and ignores the rest
     final formattedTextPattern = RegExp(r'The sentence \"(.*?)\" is grammatically correct\.', caseSensitive: false);
 
     final match = formattedTextPattern.firstMatch(apiResponse);
@@ -198,7 +177,6 @@ class _RecordViewState extends State<RecordView> {
     return apiResponse.trim();
   }
 
-  // ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   bool _hasTranscriptionBeenSent = false;
   bool _isProcessing = false;
@@ -209,7 +187,6 @@ class _RecordViewState extends State<RecordView> {
 
     setState(() {
       _isRecording = false;
-      // _isProcessing = true; // Set loading indicator to true
 
     });
 
@@ -220,13 +197,9 @@ class _RecordViewState extends State<RecordView> {
 
     if (!isRestarting && !_hasTranscriptionBeenSent) {
       if (_speechText.isNotEmpty) {
-        // Check if formatting is needed
+        // Checking if formatting is needed
         final bool needsFormatting = _checkIfFormattingNeeded(_speechText);
 
-        // Navigator.push(
-        //   context,
-        //   MaterialPageRoute(builder: (context) => LoadingPage()),
-        // );
 
         String? formattedText = needsFormatting ? await _formatText(_speechText) : _speechText;
 
@@ -254,9 +227,7 @@ class _RecordViewState extends State<RecordView> {
         print('No new speech was recognized.');
       }
     }
-    // setState(() {
-    //   _isProcessing = false; // Set loading indicator to false when done
-    // });
+
   }
 
   Future<void> _stopRecording() async {
@@ -265,7 +236,6 @@ class _RecordViewState extends State<RecordView> {
     try {
       final transcriptionToSend = _isRestarted ? _speechText : _speechText;
 
-      // Only send transcription if it hasn't been sent yet
       if (!_hasTranscriptionBeenSent) {
         String? formattedText = await _formatText(transcriptionToSend);
 
@@ -295,104 +265,13 @@ class _RecordViewState extends State<RecordView> {
     }
   }
 
-  // Future<void> _stopRecording() async {
-  //   if (!_isRecording) return; // Avoid multiple stops
-  //
-  //   setState(() {
-  //     _isRecording = false;
-  //   });
-  //
-  //   _stopTimer();
-  //   await _speech.stop();
-  //
-  //   if (_speechText.isNotEmpty) {
-  //     String? formattedText = await _formatText(_speechText);
-  //     if (formattedText != null) {
-  //       Navigator.pushReplacement(
-  //         context,
-  //         MaterialPageRoute(
-  //           builder: (context) => TranscribeResult(
-  //             transcribedText: formattedText,
-  //             onDelete: () {
-  //               widget.onRecordingComplete('');
-  //               _hasTranscriptionBeenSent = false;
-  //             },
-  //             tokenid: widget.tokenid,
-  //           ),
-  //         ),
-  //       );
-  //     }
-  //   } else {
-  //     print('No speech recognized.');
-  //   }
-  // }
-
-
-
-  // //////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-  bool _isTranscriptionSent = false;
-
-  // Future<void> _sendTranscriptionToBackend(String transcribedText , ) async {
-  //   if (_isTranscriptionSent) return; // Avoid duplicate posting
-  //   final String apiUrl = 'https://dev-oscar.merakilearn.org/api/v1/transcriptions/add'; // Replace with your actual API URL
-  //   try {
-  //     final response = await http.post(
-  //       Uri.parse(apiUrl),
-  //       headers: <String, String>{
-  //         'Authorization': 'Bearer ${widget.tokenid}',
-  //         'Content-Type': 'application/json; charset=UTF-8',
-  //       },
-  //       body: jsonEncode(<String, String>{
-  //         'transcribedText': transcribedText,
-  //       }),
-  //     );
-  //     if (response.statusCode == 201) {
-  //       print('Transcription successfully sent: ${response.statusCode}');
-  //       // Handle success response if needed
-  //     } else {
-  //       print('Failed to send transcription: ${response.statusCode}');
-  //     }
-  //   } catch (e) {
-  //     print('Error during sending transcription: $e');
-  //   }
-  // }
-
-//???????????????????????????????????????????????????????????????????????????????????????????????????
   void _initializeSpeechToText() {
     _speech = stt.SpeechToText();
     _checkPermissionAndStartListening();
   }
 
 
-  // void _showRestartConfirmationDialog() {
-  //   showDialog(
-  //     context: context,
-  //     builder: (BuildContext context) {
-  //       return
-  //
-  //       //   AlertDialog(
-  //       //   title: Text("Restart recording"),
-  //       //   // actions: [
-  //       //   //   TextButton(
-  //       //   //     onPressed: () {
-  //       //   //       Navigator.of(context).pop();
-  //       //   //       _restartRecordingSession();
-  //       //   //     },
-  //       //   //     child: Text("Yes"),
-  //       //   //   ),
-  //       //   //   TextButton(
-  //       //   //     onPressed: () {
-  //       //   //       Navigator.of(context).pop();
-  //       //   //       _resumeRecording();
-  //       //   //     },
-  //       //   //     child: Text("No"),
-  //       //   //   ),
-  //       //   // ],
-  //       // );
-  //     },
-  //   );
-  // }
+
 
   void _restartRecordingSession() async {
     await _stopCurrentRecording(isRestarting: true);
@@ -401,32 +280,30 @@ class _RecordViewState extends State<RecordView> {
       _isRestarted = true;
       _seconds = 0;
       _speechText = '';// Reset timer
-      // _isRestarted = true;
     });
 
     _initializeSpeechToText();
 
-    // await _stopCurrentRecording();
     _startRecording(); // Start a new recording session
   }
 
-  Future<void> _resumeRecording() async {
-    if (_isPaused) {
-      setState(() {
-        _isPaused = false;
-      });
-      _startTimer();
-      _speech.listen(onResult: (val) {
-        setState(() {
-          _speechText = val.recognizedWords;
-        });
-        if (val.finalResult) {
-          print('Final speech result: $_speechText');
-        }
-      });
-    }
-  }
-
+  //Use later................................
+  // Future<void> _resumeRecording() async {
+  //   if (_isPaused) {
+  //     setState(() {
+  //       _isPaused = false;
+  //     });
+  //     _startTimer();
+  //     _speech.listen(onResult: (val) {
+  //       setState(() {
+  //         _speechText = val.recognizedWords;
+  //       });
+  //       if (val.finalResult) {
+  //         print('Final speech result: $_speechText');
+  //       }
+  //     });
+  //   }
+  // }
 
   Future<void> _startRecording() async {
     setState(() {
@@ -434,94 +311,30 @@ class _RecordViewState extends State<RecordView> {
       _seconds = 0;
     });
     _startTimer();
+
+    // Initialized the speech recognition and start listening with the specified parameters
+    await _speech.listen(
+      onResult: (val) {
+        setState(() {
+          _speechText = val.recognizedWords;
+        });
+        if (val.finalResult) {
+          print('Final speech result: $_speechText');
+        }
+      },
+      listenFor: Duration(minutes: 3), //  maximum listening duration to 1 minute
+      pauseFor: Duration(minutes: 20),  //  the time allowed for silence before stopping to 1 minute
+      onSoundLevelChange: (level) {
+      },
+    );
   }
 
-
-  // Future<void> _stopCurrentRecording({bool isRestarting = false}) async {
-  //   if (!_isRecording) return; // Avoid multiple stops
-  //
-  //   setState(() {
-  //     _isRecording = false;
-  //   });
-  //
-  //   _timer?.cancel(); // Stop the timer
-  //
-  //   // Stop the speech recognition
-  //   await _speech.stop();
-  //
-  //   if (!isRestarting) {
-  //     // Ensure that the latest transcription data is what gets sent
-  //     if (_speechText.isNotEmpty) {
-  //       // Check if formatting is needed
-  //       final bool needsFormatting = _checkIfFormattingNeeded(_speechText);
-  //
-  //       String? formattedText = needsFormatting ? await _formatText(_speechText) : _speechText;
-  //
-  //       if (formattedText != null) {
-  //         // Send the formatted transcription to the backend
-  //         await _sendTranscriptionToBackend(formattedText);
-  //
-  //         // Navigate to the transcription result page with the latest transcription
-  //         Navigator.pushReplacement(
-  //           context,
-  //           MaterialPageRoute(
-  //             builder: (context) => TranscribeResult(
-  //               transcribedText: formattedText,
-  //               onDelete: () {
-  //                 widget.onRecordingComplete('');
-  //               },
-  //               tokenid: widget.tokenid,
-  //             ),
-  //           ),
-  //         );
-  //       } else {
-  //         print('No formatted text available.');
-  //       }
-  //     } else {
-  //       print('No new speech was recognized.');
-  //     }
-  //   }
-  // }
 
 
 
   bool _checkIfFormattingNeeded(String text) {
-    // Implement your logic to check if formatting is needed
-    // For example, check if the text contains known errors or patterns
-    return true; // Return true if formatting is needed, false otherwise
+    return true;
   }
-
-  // Future<void> _stopRecording() async {
-  //   await _stopCurrentRecording();
-  //
-  //   try {
-  //     final transcriptionToSend = _isRestarted ? _speechText : _speechText;
-  //
-  //     String? formattedText = await _formatText(transcriptionToSend);
-  //
-  //     if (formattedText != null) {
-  //       await _sendTranscriptionToBackend(formattedText);
-  //       _isRestarted = false;
-  //
-  //       Navigator.pushReplacement(
-  //         context,
-  //         MaterialPageRoute(
-  //           builder: (context) => TranscribeResult(
-  //             transcribedText: formattedText,
-  //             onDelete: () {
-  //               widget.onRecordingComplete('');
-  //             },
-  //             tokenid: widget.tokenid,
-  //           ),
-  //         ),
-  //       );
-  //     } else {
-  //       print('No formatted text available.');
-  //     }
-  //   } catch (e) {
-  //     print('Error stopping the recording: $e');
-  //   }
-  // }
 
 
 
@@ -739,7 +552,7 @@ class _RecordViewState extends State<RecordView> {
                   children: [
                     // Blurred background
                     BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0), // Adjust the blur strength as needed
+                      filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0), // Can adjust the blur strength as needed
                       child: Container(
                         color: Colors.black.withOpacity(0.2), // Slightly tinted background to improve readability
                       ),
@@ -749,9 +562,9 @@ class _RecordViewState extends State<RecordView> {
                       child: Padding(
                         padding: EdgeInsets.symmetric(horizontal: mq.width * 0.04, vertical: mq.height * 0.1),
                         child: Column(
-                          mainAxisSize: MainAxisSize.min, // Adjusts Column height to fit its children
+                          mainAxisSize: MainAxisSize.min,
                           mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center, // Aligns children horizontally
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
 
                             SizedBox(height: mq.height * 0.03),

@@ -4,14 +4,14 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  final String apiUrl = 'https://dev-oscar.merakilearn.org/api/v1/transcriptions'; // Replace with your actual API URL
+  final String apiUrl = 'https://dev-oscar.merakilearn.org/api/v1/transcriptions';
 
   Future<List<Map<String, dynamic>>> fetchTranscriptions(String tokenid) async {
     try {
       final response = await http.get(
         Uri.parse(apiUrl),
         headers: <String, String>{
-          'Authorization': 'Bearer ${tokenid}',// Add authorization header if needed
+          'Authorization': 'Bearer ${tokenid}',
           'Content-Type': 'application/json; charset=UTF-8',
         },
       );

@@ -59,7 +59,6 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
     final imageSize = screenWidth * 0.75;
 
     return Scaffold(
@@ -72,11 +71,7 @@ class _SplashScreenState extends State<SplashScreen> {
           height: imageSize * 0.75,
         ),
 
-        // Image.asset(
-        //   'assets1/Group 2.png',  // Path to your image asset
-        //   height: 64.0,      // Adjust height to match the size of the original text if needed
-        //   fit: BoxFit.contain, // Adjust the fit to control how the image fits in its box
-        // ),
+
       ),
     );
   }

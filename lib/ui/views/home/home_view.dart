@@ -5,7 +5,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:oscar_stt/core/constants/app_colors.dart';
 import 'package:oscar_stt/ui/views/transcribe/transcribe_view.dart';
 import '../../../core/viewmodels/api_service.dart';
@@ -15,7 +14,6 @@ import '../record/record_view.dart';
 
 
 
-import 'package:oscar_stt/core/viewmodels/delete_api_service.dart';
 
 class HomePage extends StatefulWidget {
   final String profileName;
@@ -39,27 +37,11 @@ class _HomePageState extends State<HomePage> {
   late Future<List<Map<String, dynamic>>> _transcriptionsFuture;
   List<Map<String, dynamic>> _currentTranscriptions = [];
 
-  //
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   _transcriptionsFuture = ApiService().fetchTranscriptions(widget.tokenid);
-  //
-  //
-  //
-  //   WidgetsBinding.instance.addPostFrameCallback((_) {
-  //     if (ModalRoute.of(context)?.settings.arguments == true) {
-  //       _showRefreshAlertDialog();
-  //       _refreshData(); // Refresh data when returning from another page
-  //
-  //     }
-  //   });
-  // }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Fetch fresh data every time the dependencies change, i.e., when the user comes back to this page
+    // Fetch fresh data every time the dependencies change,
     _transcriptionsFuture = ApiService().fetchTranscriptions(widget.tokenid);
   }
 
@@ -75,115 +57,6 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  // /////////////////////////////////////////////////////////////////////
-  bool _showPopupFlag = false;
-
-  // @override
-  // void didChangeDependencies() {
-  //   super.didChangeDependencies();
-  //   if (_showPopupFlag) {
-  //     _showPopup();
-  //     _showPopupFlag = false; // Reset the flag
-  //   }
-  // }
-
-  Future<void> _navigateToTranscribeResult() async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => TranscribeResult(
-          transcribedText: 'Your Transcription',
-          onDelete: () {},
-          tokenid: '123',
-        ),
-      ),
-    );
-
-    if (result == 'show_popup') {
-      setState(() {
-        _showPopupFlag = true;
-      });
-    }
-  }
-
-  void _showPopup() {
-    showGeneralDialog(
-      context: context,
-      barrierDismissible: true,
-      barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-      barrierColor: Colors.black45,
-      transitionDuration: const Duration(milliseconds: 300),
-      pageBuilder: (BuildContext buildContext, Animation animation, Animation secondaryAnimation) {
-        var mq = MediaQuery.of(context).size;
-        return Center(
-          child: Container(
-            width: mq.width * 0.8,
-            height: mq.height * 0.2,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Center(
-              child: Text(
-                'Refresh screen for new transcription',
-                style: TextStyle(fontSize: 18),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          ),
-        );
-      },
-      transitionBuilder: (context, animation, secondaryAnimation, child) {
-        var begin = Offset(0.0, -1.0);
-        var end = Offset.zero;
-        var curve = Curves.easeInOut;
-
-        var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-
-        return SlideTransition(
-          position: animation.drive(tween),
-          child: child,
-        );
-      },
-    );
-
-    Future.delayed(Duration(seconds: 3), () {
-      Navigator.of(context).pop();
-    });
-  }
-  // ////////////////////////////////////////////////////////////////////
-  // @override
-  // void didChangeDependencies() {
-  //   super.didChangeDependencies();
-  //       _transcriptionsFuture = ApiService().fetchTranscriptions(widget.tokenid);
-  //
-  //   _refreshData(); // Re-initialize the data
-  // }
-
-  // void _refreshData() {
-  //   setState(() {
-  //     _transcriptionsFuture = ApiService().fetchTranscriptions(widget.tokenid);
-  //   });
-  // }
-
-// Inside HomePage when navigating to TranscriptionPage
-//   void _navigateToTranscriptionPage(BuildContext context) async {
-//     final result = await Navigator.push(
-//       context,
-//       MaterialPageRoute(builder: (context) => TranscribeResult(onDelete: _confirmDeleteTranscription, transcribedText: '', tokenid: '',)),
-//     );
-//
-//     if (result == 'Transcription deleted') {
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         SnackBar(content: Text('Your transcription has been deleted')),
-//       );
-//     }
-//   }
-//
-//   void _onDeleteCallback() {
-//     // This will be triggered when transcription is deleted in the TranscriptionPage
-//     // You can handle any additional logic here (if needed)
-//   }
 
 
   void _showRefreshAlertDialog() {
@@ -218,7 +91,6 @@ class _HomePageState extends State<HomePage> {
       _showNewTranscriptionSnackBar();
     }
 
-    // _currentTranscriptions = newTranscriptions;
   }
 
   void _showNewTranscriptionSnackBar() {
@@ -230,90 +102,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _navigateToTranscriptionPage(BuildContext context) async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => TranscribeResult(
-          onDelete: () => _confirmDeleteTranscription(context as String), transcribedText: '', tokenid: '', // Pass the callback here
-        ),
-      ),
-    );
 
-    if (result == 'Transcription deleted') {
-      // Handle additional logic after navigating back, if necessary
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Your transcription has been deleted')),
-      );
-    }
-  }
-
-  /////////////////////////////////////////////////////////////////////////////////////////
-  // Future<void> _confirmDeleteTranscription(String transcriptionId) async {
-  //   bool? isConfirmed = await showDialog<bool>(
-  //     context: context,
-  //     barrierDismissible: true,
-  //     builder: (BuildContext context) {
-  //       return AlertDialog(
-  //         shape: RoundedRectangleBorder(
-  //           borderRadius: BorderRadius.zero,
-  //         ),
-  //         title: Text('Confirm Delete'),
-  //         content: Text('Are you sure you want to delete this note?'),
-  //         actions: <Widget>[
-  //           SizedBox(height: 20.0),
-  //           Container(
-  //             decoration: BoxDecoration(
-  //               color: Colors.red,
-  //               borderRadius: BorderRadius.circular(50.0),
-  //             ),
-  //             padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 5.0),
-  //             child: TextButton(
-  //               child: Text('Cancel'),
-  //               style: TextButton.styleFrom(
-  //                 foregroundColor: Colors.white,
-  //               ),
-  //               onPressed: () {
-  //                 Navigator.of(context).pop(false); // Dismiss dialog and return false
-  //               },
-  //             ),
-  //           ),
-  //           Container(
-  //             decoration: BoxDecoration(
-  //               color: AppColors.ButtonColor2,
-  //               borderRadius: BorderRadius.circular(50.0),
-  //             ),
-  //             padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 5.0),
-  //             child: TextButton(
-  //               child: Text(
-  //                 'Delete',
-  //                 style: TextStyle(color: Colors.white),
-  //               ),
-  //               onPressed: () {
-  //                 Navigator.of(context).pop(true); // Dismiss dialog and return true
-  //               },
-  //             ),
-  //           ),
-  //         ],
-  //       );
-  //     },
-  //   );
-  //
-  //   if (isConfirmed ?? false) {
-  //     bool deleted = await _deleteTranscription(transcriptionId); // Perform deletion
-  //
-  //     if (deleted) {
-  //       Navigator.of(context).pop('Transcription deleted'); // Return result to HomePage
-  //     }
-  //   }
-  // }
-  //
-  // Future<bool> _deleteTranscription(String transcriptionId) async {
-  //   // Your deletion logic here
-  //   // Return true if deletion was successful, false otherwise
-  // }
-
-  ////////////////////////////////////////////////////////////////////////////////////////////////
 
   Future<void> _confirmDeleteTranscription(String transcriptionId) async {
     return showDialog<void>(
@@ -379,7 +168,7 @@ class _HomePageState extends State<HomePage> {
       );
 
       if (response.statusCode == 200) {
-        // Successfully deleted, you may need to refresh the data
+
         print('deleted successfully');
         setState(() {
           _transcriptionsFuture = _fetchTranscriptions(); // Refresh the data
@@ -406,7 +195,6 @@ class _HomePageState extends State<HomePage> {
       print('Error: $e');
     }
   }
-  /////////////////////////////////////////////////////////
   Future<List<Map<String, dynamic>>> _fetchTranscriptions() async {
     final response = await http.get(
       Uri.parse('https://dev-oscar.merakilearn.org/api/v1/transcriptions'),
@@ -431,7 +219,6 @@ class _HomePageState extends State<HomePage> {
 
 
     return Scaffold(
-      // backgroundColor: AppColors.backgroundColor,
       backgroundColor: Color.fromRGBO(220, 236, 235, 1.0),
 
       appBar:
@@ -440,7 +227,6 @@ class _HomePageState extends State<HomePage> {
         scrolledUnderElevation: 0.0,
         automaticallyImplyLeading: false,
         elevation: 0,
-        // backgroundColor: Colo,
         title: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             SvgPicture.asset(
@@ -453,18 +239,18 @@ class _HomePageState extends State<HomePage> {
               icon: CircleAvatar(
                 backgroundImage: widget.profilePicUrl != null && widget.profilePicUrl!.isNotEmpty
                     ? NetworkImage(widget.profilePicUrl!)
-                    : null, // Only provide the image if it exists
-                radius: mq.width * 0.04, // Adjust size as needed
-                backgroundColor: Colors.blue, // Optional: set a background color for the text avatar
+                    : null,
+                radius: mq.width * 0.04,
+                backgroundColor: Colors.blue,
                 child: widget.profilePicUrl == null || widget.profilePicUrl!.isEmpty
                     ? Text(
                   widget.profileName.isNotEmpty ? widget.profileName[0].toUpperCase() : '',
                   style: TextStyle(
-                    color: Colors.white, // Optional: text color
-                    fontSize: mq.width * 0.04, // Adjust font size as needed
+                    color: Colors.white,
+                    fontSize: mq.width * 0.04,
                   ),
                 )
-                    : null, // Show the first letter of the user's name if no profile picture
+                    : null,
               ),
               onPressed: () {
                 Navigator.push(
@@ -480,30 +266,11 @@ class _HomePageState extends State<HomePage> {
             )
 
 
-            // IconButton(
-            //   icon: CircleAvatar(
-            //     backgroundImage: NetworkImage(widget.profilePicUrl ?? 'default_image_url'),
-            //     radius: mq.width * 0.04, // Adjust size as needed
-            //     backgroundColor: Colors.transparent, // Optional: to avoid default background color
-            //   ),
-            //   onPressed: () {
-            //     Navigator.push(
-            //       context,
-            //       MaterialPageRoute(
-            //         builder: (context) => SettingsScreen(
-            //           profileName: widget.profileName,
-            //           profilePicUrl: widget.profilePicUrl,
-            //         ),
-            //       ),
-            //     );
-            //   },
-            // )
+
 
           ],
         ),),
-    // drawer: Container(
-    //     color: Colors.lightBlue,
-    //   ),
+
 
       body:      RefreshIndicator(
         onRefresh: _refreshData,
@@ -515,7 +282,7 @@ class _HomePageState extends State<HomePage> {
             } else if (snapshot.hasError) {
               return Center(child: Text('Error: ${snapshot.error}'));
             } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return SingleChildScrollView( // Use SingleChildScrollView to enable scrolling
+              return SingleChildScrollView( // SingleChildScrollView to enable scrolling
                 physics: AlwaysScrollableScrollPhysics(), // Ensures scroll even when empty
                 child: Container(
                   height: mq.height - kToolbarHeight, // Full height minus AppBar
@@ -524,7 +291,6 @@ class _HomePageState extends State<HomePage> {
                       mainAxisAlignment: MainAxisAlignment.center, // Center the content vertically
                       crossAxisAlignment: CrossAxisAlignment.center, // Center the content horizontally
                       children: [
-                        // Display "My Transcriptions (0)" at the top left
                         Align(
                           alignment: Alignment.topLeft,
                           child: Padding(
@@ -540,30 +306,17 @@ class _HomePageState extends State<HomePage> {
                         ),
 
                         SizedBox(height: mq.height * 0.20),
-                        // IconButton(
-                        //   icon: Icon(Icons.refresh, color: AppColors.ButtonColor,),
-                        //   onPressed: () {
-                        //     if (_currentTranscriptions.isEmpty) {
-                        //       _refreshData();
-                        //     }
-                        //   },
-                        // ),
-                        // Text(
-                        //   'Refresh your page',
-                        //   style: TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
-                        // ),
 
-                        // Spacer(), // Pushes content to the center
 
                         // The image
                         Image.asset(
-                          'assets1/homeimage.png', // Path to the image asset
-                          width: 100, // You can adjust the width as needed
-                          height: 100, // You can adjust the height as needed
+                          'assets1/homeimage.png',
+                          width: 100,
+                          height: 100,
                         ),
 
                         Padding(
-                          padding: const EdgeInsets.all(10.0), // Add space between the image and text
+                          padding: const EdgeInsets.all(10.0),
                           child: Text(
                             "We are excited to see what your first transcription will be",
                             textAlign: TextAlign.center,
@@ -574,7 +327,7 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
 
-                        Spacer(), // Pushes content to the center
+                        Spacer(),
                       ],
                     ),
                   ),
@@ -687,71 +440,6 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
 
-    //   floatingActionButton: FloatingActionButton(
-    //     shape: const CircleBorder(),
-    //     onPressed: () async {
-    //       final newTranscription = await
-    //       Navigator.push(
-    //           context,
-    //           MaterialPageRoute(
-    //             builder: (context) => RecordView(
-    //               onRecordingComplete: (transcribedText) {
-    //                 _refreshData();
-    //                 Navigator.pop(context, true); // Return true to indicate that new transcription is added
-    //
-    //                 setState(() {
-    //                   _transcriptionsFuture = _fetchTranscriptions();
-    //                 });
-    //
-    //                 // setState(() {
-    //                 //   _transcriptionsFuture = ApiService().fetchTranscriptions(widget.tokenid);
-    //                 // });
-    //
-    //                 Navigator.pushReplacement(
-    //                   context,
-    //                   MaterialPageRoute(
-    //                     builder: (context) => TranscribeResult(
-    //                       transcribedText: transcribedText,
-    //                       onDelete: () => _deleteTranscription(transcribedText),
-    //                       tokenid: widget.tokenid,
-    //                     ),
-    //                   ),
-    //                 );
-    //               },
-    //               tokenid: widget.tokenid,
-    //             ),
-    //           )
-    //       );
-    //       if (newTranscription != null && newTranscription == true) {
-    //         _refreshData();
-    //       }
-    //     },
-    //     child: Container(
-    //       width: 100.0, // Adjust the size of the circular container
-    //       height: 100.0,
-    //       decoration: BoxDecoration(
-    //         color: Colors.red, // Set the background color to yellow
-    //         shape: BoxShape.circle, // Make the container circular
-    //       ),
-    //       child: Image.asset(
-    //         'assets1/mic.png',
-    //         width: 40.0,
-    //         height: 40.0,
-    //       ),
-    //     ),
-    //     backgroundColor: AppColors.ButtonColor2,
-    //   ),
-    //
-    //   floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-    //
-    //
-    //   // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    //   //
-    //   //
-    //   //
-    //   // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    // );
-
 
 
       floatingActionButton: Stack(
@@ -762,11 +450,11 @@ class _HomePageState extends State<HomePage> {
             width: 100.0,
             height: 100.0,
             decoration: BoxDecoration(
-              color: AppColors.flotingButton, // Set the background color to yellow
+              color: AppColors.flotingButton,
               shape: BoxShape.circle,
             ),
           ),
-          // Mic image inside the container
+
           GestureDetector(
             onTap: () async {
               final newTranscription = await Navigator.push(
@@ -803,7 +491,7 @@ class _HomePageState extends State<HomePage> {
             },
             child: Image.asset(
               'assets1/mic.png',
-              width: 60.0, // Adjust size of the mic image
+              width: 60.0,
               height: 60.0,
             ),
           ),
